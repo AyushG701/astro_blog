@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
 import User from "./Schema/User.js";
 import jwt from "jsonwebtoken";
+import cors from "cors";
 
 const server = express();
 let PORT = 3000;
@@ -18,6 +19,8 @@ mongoose.connect(uri, {
 });
 // middleware
 server.use(express.json());
+server.use(cors());
+
 //  controller
 //auth controller
 
