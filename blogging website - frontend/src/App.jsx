@@ -2,10 +2,12 @@ import { Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import UserAuthForm from "./pages/userAuthForm.jsx";
 import { createContext } from "react";
+import { useState, useEffect } from "react";
+import { lookInSession } from "./common/session.jsx";
 
 export const UserContext = createContext({});
 const App = () => {
-  const [userAuth, setUserAuth] = useState();
+  const [userAuth, setUserAuth] = useState({});
 
   useEffect(() => {
     // get user data if it exists in local storage

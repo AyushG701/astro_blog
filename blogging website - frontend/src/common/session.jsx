@@ -14,4 +14,4 @@ const logOutUser = () => {
   sessionStorage.clear();
 };
 
-export { storeInSession, lookInSession, removedFromSession, logOutUser };
+export { logOutUser };

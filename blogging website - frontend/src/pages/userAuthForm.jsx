@@ -7,6 +7,7 @@ import { Toaster, toast } from "react-hot-toast";
 import axios from "axios";
 import { storeInSession } from "../common/session";
 import { UserContext } from "../App";
+import { Navigate } from "react-router-dom";
 const UserAuthForm = ({ type }) => {
   // const authForm = useRef(); // used to reference and used to access the form data
   // making request to the server through axios
@@ -72,6 +73,8 @@ const UserAuthForm = ({ type }) => {
     }
     userAuthThroughServer(serverRoute, formData);
   };
+
+  // here if we have the access_token then to home page otherwise to signin page .
   return access_token ? (
     <Navigate to="/" />
   ) : (

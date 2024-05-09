@@ -1,8 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import logo from "../imgs/logo.png";
 import { Link, Outlet } from "react-router-dom";
+import { UserContext } from "../App";
+import UserNavigation from "./UserNavigation";
+
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [userNavPannel, setUserNavPannel] = useState(false);
+
+  const {
+    userAuth,
+    userAuth: { access_token, profileimg },
+  } = useContext(UserContext);
+
+  const handleNavPannel = () => {
+    setUserNavPannel((currentVal) => !currentVal);
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setUserNavPannel(false);
+    }, 300);
+  };
+
   return (
     <>
       <nav className="navbar">
@@ -40,14 +60,40 @@ const Navbar = () => {
           <i className="fi fi-rr-file-edit" />
           <span>Write</span>
         </Link>
-
-        {/* sign in or sign out bar */}
-        <Link to="/signin" className="btn-dark py-2">
-          Sign In
-        </Link>
-        <Link to="/signup" className="btn-light py-2 hidden md:block">
-          Sign Up
-        </Link>
+        {access_token ? (
+          <>
+            <Link to="/dashboard/notification">
+              <button className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10 ">
+                <i className="fi fi-rr-bell text-2xl block mt-1" />
+              </button>
+            </Link>
+            <div className="relative" tabIndex={0}>
+              <button
+                onClick={handleNavPannel}
+                onBlur={handleBlur}
+                className="w-12 h-12 mt-1"
+              >
+                <img
+                  src={profileimg}
+                  alt="Profile image"
+                  className="w-full h-full object-cover rounded-full"
+                />
+                {console.log(profileimg)}
+              </button>
+              {userNavPannel ? <UserNavigation /> : ""}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* sign in or sign out bar */}
+            <Link to="/signin" className="btn-dark py-2">
+              Sign In
+            </Link>
+            <Link to="/signup" className="btn-light py-2 hidden md:block">
+              Sign Up
+            </Link>
+          </>
+        )}
       </nav>
       {/* outlet is required for the nested route in app section */}
       <Outlet />
