@@ -8,6 +8,7 @@ import axios from "axios";
 import { storeInSession } from "../common/session";
 import { UserContext } from "../App";
 import { Navigate } from "react-router-dom";
+import { authWithGoogle } from "../common/firebase";
 const UserAuthForm = ({ type }) => {
   // const authForm = useRef(); // used to reference and used to access the form data
   // making request to the server through axios
@@ -74,6 +75,25 @@ const UserAuthForm = ({ type }) => {
     userAuthThroughServer(serverRoute, formData);
   };
 
+  const handleGoogleAuth = (e) => {
+    e.preventDefault();
+    authWithGoogle()
+      .then((user) => {
+        // Handle the signed-in user, for example, set user state or redirect to another page
+        console.log("User signed in:", user);
+        let serverRoute = "/google-auth";
+        let formData = {
+          access_token: user.accessToken,
+        };
+        userAuthThroughServer(serverRoute, formData);
+      })
+      .catch((error) => {
+        toast.error("trouble login through google");
+        console.error("Error signing in with Google:", error);
+        // Handle error, for example, display an error message to the user
+      });
+  };
+
   // here if we have the access_token then to home page otherwise to signin page .
   return access_token ? (
     <Navigate to="/" />
@@ -128,7 +148,10 @@ const UserAuthForm = ({ type }) => {
               <p>or</p>
               <hr className="w-1/2 " />
             </div>
-            <button className="btn-dark flex gap-4 w-[90%] m-auto items-center justify-center ">
+            <button
+              onClick={handleGoogleAuth}
+              className="btn-dark flex gap-4 w-[90%] m-auto items-center justify-center "
+            >
               <img className="w-5 " src={googleIcon} alt="" />
               Continue With Google
             </button>
