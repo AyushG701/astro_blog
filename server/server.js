@@ -9,6 +9,8 @@ import cors from "cors";
 import admin from "firebase-admin";
 import serviceAccountKey from "./react-blog-site-f66c6-firebase-adminsdk-ppykz-28e7e0c625.json" assert { type: "json" };
 import { getAuth } from "firebase/auth";
+import { v2 as cloudinary } from "cloudinary";
+
 const server = express();
 let PORT = 3000;
 let slatRounds = 10;
@@ -18,8 +20,36 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccountKey),
 });
 
+//generate Upload Url
+
+const generateUploadUrl = async (req, res) => {
+  try {
+    const uploadStream = await cloudinary.uploader.upload_stream(
+      {},
+      async (error, result) => {
+        if (error) {
+          if (error.message === "Must provide a valid file") {
+            res.status(400).json({ error: "Please provide a valid file" });
+          } else {
+            res.status(500).json({ error: "Error uploading to Cloudinary" });
+          }
+        } else {
+          res.json({ uploadUrl: result.secure_url });
+        }
+      },
+    );
+
+    // Pipe the upload stream to nowhere to trigger the upload URL generation
+    req.pipe(uploadStream);
+  } catch (error) {
+    console.error("Error generating upload URL:", error);
+    res.status(500).json({ error: "Error generating upload URL" });
+  }
+};
+
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; // regex for email
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for password
+
 // database connect
 const uri = `${process.env.DB_LOCATION}/${process.env.DB_NAME}`;
 mongoose.connect(uri, {
@@ -124,12 +154,10 @@ server.post("/signin", (req, res) => {
           }
         });
       } else {
-        return res
-          .status(403)
-          .json({
-            error:
-              "Account was created using google . Try Logging in with google ",
-          });
+        return res.status(403).json({
+          error:
+            "Account was created using google . Try Logging in with google ",
+        });
       }
       //   return res.json({ status: "got the user document" });
     })
@@ -199,6 +227,16 @@ server.post("/google-auth", async (req, res) => {
     });
 
   // User is authenticated, you can now handle the request accordingly
+});
+
+//upload image url root
+server.get("/get-upload-url", async (req, res) => {
+  try {
+    await generateUploadUrl(req, res);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 server.listen(PORT, () => {
