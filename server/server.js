@@ -9,9 +9,12 @@ import cors from "cors";
 import admin from "firebase-admin";
 import serviceAccountKey from "./react-blog-site-f66c6-firebase-adminsdk-ppykz-28e7e0c625.json" assert { type: "json" };
 import { getAuth } from "firebase/auth";
-import { v2 as cloudinary } from "cloudinary";
+import cloudinary from "cloudinary";
+import fse from "fs-extra";
 
-const server = express();
+const server = express({
+  limit: "20mb",
+});
 let PORT = 3000;
 let slatRounds = 10;
 
@@ -20,32 +23,15 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccountKey),
 });
 
+// cloudanary config
+const cloudinaryConfig = cloudinary.config({
+  cloud_name: process.env.CLOUD_KEY,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+  secure: true,
+});
+
 //generate Upload Url
-
-const generateUploadUrl = async (req, res) => {
-  try {
-    const uploadStream = await cloudinary.uploader.upload_stream(
-      {},
-      async (error, result) => {
-        if (error) {
-          if (error.message === "Must provide a valid file") {
-            res.status(400).json({ error: "Please provide a valid file" });
-          } else {
-            res.status(500).json({ error: "Error uploading to Cloudinary" });
-          }
-        } else {
-          res.json({ uploadUrl: result.secure_url });
-        }
-      },
-    );
-
-    // Pipe the upload stream to nowhere to trigger the upload URL generation
-    req.pipe(uploadStream);
-  } catch (error) {
-    console.error("Error generating upload URL:", error);
-    res.status(500).json({ error: "Error generating upload URL" });
-  }
-};
 
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; // regex for email
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for password
@@ -228,14 +214,67 @@ server.post("/google-auth", async (req, res) => {
 
   // User is authenticated, you can now handle the request accordingly
 });
+// to get the signature if the frontned send the reight image
+server.get("/get-signature", (req, res) => {
+  try {
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const signature = cloudinary.utils.api_sign_request(
+      {
+        timestamp: timestamp,
+      },
+      cloudinaryConfig.api_secret,
+    );
+    res.json({ timestamp, signature });
+  } catch (error) {
+    console.error("Error generating signature:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 //upload image url root
-server.get("/get-upload-url", async (req, res) => {
+server.post("/do-something-with-photo", async (req, res) => {
+  // based on the public_id and the version that the (potentially malicious) user is submitting...
+  // we can combine those values along with our SECRET key to see what we would expect the signature to be if it was innocent / valid / actually coming from Cloudinary
+  const expectedSignature = cloudinary.utils.api_sign_request(
+    { public_id: req.body.public_id, version: req.body.version },
+    cloudinaryConfig.api_secret,
+  );
+
+  // We can trust the visitor's data if their signature is what we'd expect it to be...
+  // Because without the SECRET key there's no way for someone to know what the signature should be...
+  if (expectedSignature === req.body.signature) {
+    // Do whatever you need to do with the public_id for the photo
+    // Store it in a database or pass it to another service etc...
+    await fse.ensureFile("./data.txt");
+    const existingData = await fse.readFile("./data.txt", "utf8");
+    await fse.outputFile(
+      "./data.txt",
+      existingData + req.body.public_id + "\n",
+    );
+  }
+});
+server.get("/view-photos", async (req, res) => {
   try {
-    await generateUploadUrl(req, res);
+    // Ensure that the data file exists
+    await fse.ensureFile("./data.txt");
+
+    // Read existing data from the file
+    const existingData = await fse.readFile("./data.txt", "utf8");
+
+    // Split the data by newline and filter out empty items
+    const photoIds = existingData.split("\n").filter((item) => item);
+
+    // Map the photoIds to Cloudinary image URLs
+    const photoUrls = photoIds.map(
+      (id) =>
+        `https://res.cloudinary.com/${cloudinaryConfig.cloud_name}/image/upload/${id}.jpg`,
+    );
+
+    // Send the array of image URLs as JSON response
+    res.json(photoUrls);
   } catch (error) {
-    console.log(error.message);
-    res.status(500).json({ error: error.message });
+    console.error("Error viewing photos:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

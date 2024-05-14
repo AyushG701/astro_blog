@@ -4,36 +4,71 @@ import AnimationWrapper from "../common/page-animation";
 import logo from "../imgs/logo.png";
 import blogBanner from "../imgs/blog banner.png";
 import { toast } from "react-hot-toast";
-import { uploadImage } from "../common/cloudinary";
+// import { uploadFile, getSignatureForUpload } from "../common/cloudinary";
 import { useState } from "react";
-
+import axios from "axios";
 const BlogEditor = ({ title }) => {
   //   const [theme, setTheme] = useContext(ThemeContext);
-
   const [banner, setBanner] = useState(blogBanner);
+  const handleBannerUpload = async (e) => {
+    e.preventDefault();
+    const cloud_name = import.meta.env.VITE_CLOUD_KEY;
 
-  let blogBannerRef = useRef();
-  const handleBannerUpload = (e) => {
-    let img = e.target.files[0];
-    if (img) {
-      let loadingToast = toast.loading("uploading...");
-      uploadImage(img)
-        .then((url) => {
-          if (url) {
-            toast.dismiss(loadingToast);
-            toast.success("uploaded 👍");
+    try {
+      // Get signature from the server
+      const signatureResponse = await axios.get(
+        "http://localhost:3000/get-signature",
+      );
 
-            setBanner.current.src = url;
-          }
-        })
-        .catch((err) => {
-          toast.dismiss(loadingToast);
-          return toast.error(err.message);
-        });
+      // Create FormData object to send file data
+      const formData = new FormData();
+      formData.append("file", e.target.files[0]);
+      formData.append("api_key", import.meta.env.VITE_API_KEY); // Assuming api_key is defined somewhere
+      formData.append("signature", signatureResponse.data.signature);
+      formData.append("timestamp", signatureResponse.data.timestamp);
+
+      // Send file to Cloudinary
+      const cloudinaryResponse = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            // Calculate and update upload progress
+            const progress = Math.round(
+              (progressEvent.loaded / progressEvent.total) * 100,
+            );
+            console.log(progress);
+          },
+        },
+      );
+      console.log(cloudinaryResponse.data);
+      // Send image info back to the server
+      const photoData = {
+        public_id: cloudinaryResponse.data.public_id,
+        version: cloudinaryResponse.data.version,
+        signature: cloudinaryResponse.data.signature,
+      };
+
+      await axios.post(
+        "http://localhost:3000/do-something-with-photo",
+        photoData,
+      );
+
+      console.log("File uploaded successfully:", cloudinaryResponse.data);
+      // After successful upload, fetch updated photo URLs
+      const updatedPhotoResponse = await axios.get(
+        "http://localhost:3000/view-photos",
+      );
+
+      const updatedPhotoUrls = updatedPhotoResponse.data;
+
+      // Update the banner state with the new image URL
+      setBanner(updatedPhotoUrls[0]); // Assuming you only want the first photo
+    } catch (error) {
+      console.error("Error uploading file:", error);
     }
-    console.log(img);
   };
-
   const handlePublishEvent = (e) => {
     console.log(e);
   };

@@ -7,4 +7,4 @@
 #    "password":"As123456"
 # }
 
-GET http://localhost:3000/get-upload-url
+GET http://localhost:3000/get-signature
