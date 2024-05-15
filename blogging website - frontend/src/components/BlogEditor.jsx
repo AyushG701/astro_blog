@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AnimationWrapper from "../common/page-animation";
 import logo from "../imgs/logo.png";
@@ -7,11 +7,30 @@ import { Toaster, toast } from "react-hot-toast";
 // import { uploadFile, getSignatureForUpload } from "../common/cloudinary";
 import { useState } from "react";
 import axios from "axios";
-const BlogEditor = ({ title }) => {
+import { EditorContext } from "../pages/Editor";
+import EditorJS from "@editorjs/editorjs";
+import { tools } from "./Tools";
+const BlogEditor = () => {
   //   const [theme, setTheme] = useContext(ThemeContext);
-  const [banner, setBanner] = useState(blogBanner);
-  let blogBannerRef = useRef();
+  // const [banner, setBanner] = useState(blogBanner);
 
+  let {
+    blog,
+    blog: { title, banner, content, tags, des },
+    setBlog,
+  } = useContext(EditorContext);
+
+  // useeffect
+  useEffect(() => {
+    let editor = new EditorJS({
+      holder: "text-Editor",
+      data: "",
+      tools: tools,
+      placeholder: "Lets write an awasome Story",
+    });
+  }, []);
+
+  //upload the Banner image
   const handleBannerUpload = async (e) => {
     e.preventDefault();
 
@@ -52,9 +71,9 @@ const BlogEditor = ({ title }) => {
       toast.success("Uploaded");
 
       // Update banner image if upload was successful
-      if (cloudinaryResponse.data.secure_url) {
-        updateBannerImage(cloudinaryResponse.data.secure_url);
-      }
+      let url = cloudinaryResponse.data.secure_url;
+      console.log(url);
+      updateBannerImage(url);
 
       console.log("File uploaded successfully:", cloudinaryResponse.data);
     } catch (error) {
@@ -65,8 +84,9 @@ const BlogEditor = ({ title }) => {
   };
 
   // Function to update banner image in UI
-  const updateBannerImage = (imageUrl) => {
-    blogBannerRef.current.src = imageUrl; // Assuming blogBannerRef is properly initialized
+  const updateBannerImage = () => {
+    // blogBannerRef.current.src = imageUrl; // Assuming blogBannerRef is properly initialized
+    setBlog({ ...blog, banner: url });
   };
   // Function to show upload error toast
   const showUploadErrorToast = () => {
@@ -82,6 +102,8 @@ const BlogEditor = ({ title }) => {
   };
   const handleErrorImg = (e) => {
     console.log(e);
+    let img = e.target;
+    img.src = blogBanner;
   };
   // used for title needed when i dont want user to press enter as title is only one line
   const handleTitleKeyDown = (e) => {
@@ -92,9 +114,10 @@ const BlogEditor = ({ title }) => {
   // when we are using the title input basically scrolls so we stop that behavour and handle the text height
   const handleTitleChange = (e) => {
     let input = e.target;
-    console.log(input.scrollHeight);
+    // console.log(input.scrollHeight);
     input.style.height = "auto";
     input.style.height = input.scrollHeight + "px";
+    setBlog({ ...blog, title: input.value });
   };
 
   return (
@@ -106,8 +129,7 @@ const BlogEditor = ({ title }) => {
         </Link>
 
         <p className="max-md:hidden text-black line-clamp-1 w-full">
-          {/* {title.length ? title : "New Blog"} */}
-          hasdkf
+          {title.length ? title : "New Blog"}
         </p>
 
         <div className="flex gap-4 ml-auto ">
@@ -129,8 +151,7 @@ const BlogEditor = ({ title }) => {
                 <img
                   onError={handleErrorImg}
                   className="z-20 "
-                  ref={blogBannerRef}
-                  src={blogBanner}
+                  src={banner}
                   alt=""
                 />
                 <input

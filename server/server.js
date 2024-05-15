@@ -255,30 +255,30 @@ server.post("/do-something-with-photo", async (req, res) => {
   }
 });
 
-// server.get("/view-photos", async (req, res) => {
-//   try {
-//     // Ensure that the data file exists
-//     await fse.ensureFile("./data.txt");
+server.get("/get-upload-url", async (req, res) => {
+  try {
+    // Ensure that the data file exists
+    await fse.ensureFile("./data.txt");
 
-//     // Read existing data from the file
-//     const existingData = await fse.readFile("./data.txt", "utf8");
+    // Read existing data from the file
+    const existingData = await fse.readFile("./data.txt", "utf8");
 
-//     // Split the data by newline and filter out empty items
-//     const photoIds = existingData.split("\n").filter((item) => item);
+    // Split the data by newline and filter out empty items
+    const photoIds = existingData.split("\n").filter((item) => item);
 
-//     // Map the photoIds to Cloudinary image URLs
-//     const photoUrls = photoIds.map(
-//       (id) =>
-//         `https://res.cloudinary.com/${cloudinaryConfig.cloud_name}/image/upload/${id}.jpg`,
-//     );
+    // Map the photoIds to Cloudinary image URLs
+    const photoUrls = photoIds.map(
+      (id) =>
+        `https://res.cloudinary.com/${cloudinaryConfig.cloud_name}/image/upload/${id}.jpg`,
+    );
 
-//     // Send the array of image URLs as JSON response
-//     res.json(photoUrls);
-//   } catch (error) {
-//     console.error("Error viewing photos:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
+    // Send the array of image URLs as JSON response
+    res.json(photoUrls);
+  } catch (error) {
+    console.error("Error viewing photos:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 server.listen(PORT, () => {
   console.log("listening on the port -> " + PORT);
