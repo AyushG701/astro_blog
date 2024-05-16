@@ -7,4 +7,4 @@
 #    "password":"As123456"
 # }
 
-POST http://localhost:3000//do-something-with-photo
+POST http://localhost:3000/upload-image

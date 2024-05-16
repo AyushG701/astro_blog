@@ -32,6 +32,25 @@ const cloudinaryConfig = cloudinary.config({
 });
 
 //generate Upload Url
+// const generateSignedUploadUrl = () => {
+//   return new Promise((resolve, reject) => {
+//     try {
+//       const options = {
+//         folder: "uploads",
+//         resource_type: "image",
+//       };
+
+//       const signedUploadUrl = cloudinary.utils.private_download_url(
+//         "sample.jpg",
+//         "jpg",
+//         options,
+//       );
+//       resolve(signedUploadUrl);
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+// };
 
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; // regex for email
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for password
@@ -258,21 +277,26 @@ server.post("/do-something-with-photo", async (req, res) => {
 server.get("/get-upload-url", async (req, res) => {
   try {
     // Ensure that the data file exists
+    console.log("Ensuring data file exists...");
     await fse.ensureFile("./data.txt");
 
     // Read existing data from the file
+    console.log("Reading existing data from the file...");
     const existingData = await fse.readFile("./data.txt", "utf8");
 
     // Split the data by newline and filter out empty items
+    console.log("Splitting data and filtering...");
     const photoIds = existingData.split("\n").filter((item) => item);
 
     // Map the photoIds to Cloudinary image URLs
+    console.log("Mapping photoIds to image URLs...");
     const photoUrls = photoIds.map(
       (id) =>
         `https://res.cloudinary.com/${cloudinaryConfig.cloud_name}/image/upload/${id}.jpg`,
     );
 
     // Send the array of image URLs as JSON response
+    console.log("Sending response...");
     res.json(photoUrls);
   } catch (error) {
     console.error("Error viewing photos:", error);
