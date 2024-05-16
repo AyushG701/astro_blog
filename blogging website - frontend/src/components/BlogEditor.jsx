@@ -18,16 +18,21 @@ const BlogEditor = () => {
     blog,
     blog: { title, banner, content, tags, des },
     setBlog,
+    textEditor,
+    setTextEditor,
+    setEditorState,
   } = useContext(EditorContext);
 
   // useeffect
   useEffect(() => {
-    let editor = new EditorJS({
-      holder: "text-Editor",
-      data: "",
-      tools: tools,
-      placeholder: "Lets write an awasome Story",
-    });
+    setTextEditor(
+      new EditorJS({
+        holder: "text-Editor",
+        data: "",
+        tools: tools,
+        placeholder: "Lets write an awasome Story",
+      }),
+    );
   }, []);
 
   //upload the Banner image
@@ -94,8 +99,36 @@ const BlogEditor = () => {
     toast.dismiss(loadingToast);
     return toast.error("Error uploading file. Please try again later.");
   };
+
+  // function to handle the publish event
   const handlePublishEvent = (e) => {
     console.log(e);
+    if (!banner.length) {
+      return toast.error("upload blog banner to publish it ");
+    }
+    if (!title.length) {
+      return toast.error("write blog title to publish it ");
+    }
+
+    if (textEditor.isReady) {
+      textEditor
+        .save()
+        .then((data) => {
+          if (data.blocks.length) {
+            setBlog({
+              ...blog,
+              content: data,
+            });
+
+            setEditorState("published");
+          } else {
+            return toast.error("write somwthing to publich");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   };
   const handleSaveDraft = (e) => {
     console.log(e);
