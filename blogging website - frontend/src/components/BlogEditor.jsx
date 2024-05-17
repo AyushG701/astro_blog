@@ -28,7 +28,7 @@ const BlogEditor = () => {
     setTextEditor(
       new EditorJS({
         holder: "text-Editor",
-        data: "",
+        data: Array.isArray(content) ? content[0] : content,
         tools: tools,
         placeholder: "Lets write an awasome Story",
       }),
@@ -84,17 +84,17 @@ const BlogEditor = () => {
     } catch (error) {
       console.error("Error uploading file:", error);
       // Handle specific error cases and provide user feedback
-      showUploadErrorToast();
+      showUploadErrorToast(loadingToast);
     }
   };
 
   // Function to update banner image in UI
-  const updateBannerImage = () => {
+  const updateBannerImage = (url) => {
     // blogBannerRef.current.src = imageUrl; // Assuming blogBannerRef is properly initialized
     setBlog({ ...blog, banner: url });
   };
   // Function to show upload error toast
-  const showUploadErrorToast = () => {
+  const showUploadErrorToast = (loadingToast) => {
     // Display error message to the user
     toast.dismiss(loadingToast);
     return toast.error("Error uploading file. Please try again later.");
