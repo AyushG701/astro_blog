@@ -10,12 +10,18 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 const PublishForm = () => {
   let characterLength = 200;
   let tagLimit = 10;
-  const {
+  let {
     blog: { banner, tags, title, des, content },
     setEditorState,
     setBlog,
     blog,
   } = useContext(EditorContext);
+  let {
+    userAuth: { access_token },
+  } = useContext(UserContext);
+
+  let navigate = useNavigate();
+
   const handleClosed = () => {
     setEditorState("editor");
   };
@@ -29,7 +35,7 @@ const PublishForm = () => {
     });
   };
 
-  const handleBogdecsriptionChange = (e) => {
+  const handleBlogdecsriptionChange = (e) => {
     e.preventDefault();
     let input = e.target;
 
@@ -46,7 +52,77 @@ const PublishForm = () => {
   };
 
   const handlePublishBlog = (e) => {
-    e.preventDefault();
+    // Prevent the function from running if the button is disabled
+    if (e.target.className.includes("disable")) {
+      return;
+    }
+
+    // Validate the title field
+    if (!title.length) {
+      return toast.error("Write a title before publishing");
+    }
+
+    // Validate the description field
+    if (!des.length || des.length > 200) {
+      return toast.error(
+        `Please write some description under ${characterLength} characters`,
+      );
+    }
+
+    // Validate the tags field
+    if (!tags.length) {
+      return toast.error("Add at least one tag to rank your tags");
+    }
+
+    // Display a loading toast message indicating that the post is being published
+    let loadingToast = toast.loading("Publishing post...");
+    // Disable the publish button to prevent multiple submissions
+    e.target.classList.add("disable");
+
+    // Create the blog object with necessary fields
+    let blogOBJ = {
+      title,
+      banner,
+      content,
+      tags,
+      des,
+      draft: false, // Set the draft status to false for publishing
+    };
+
+    console.log(blog_id); // Log the blog ID for debugging purposes
+
+    // Send a POST request to the server to create the blog
+    axios
+      .post(
+        import.meta.env.VITE_SERVER_DOMAIN + "/create-blog",
+        { ...blogOBJ, id: blog_id }, // Include the blog ID if it exists
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`, // Add the authorization header with the user's token
+          },
+        },
+      )
+      .then(() => {
+        // Re-enable the publish button
+        e.target.classList.remove("disable");
+        // Dismiss the loading toast
+        toast.dismiss(loadingToast);
+        // Show a success message
+        toast.success("Published 👍");
+
+        // Navigate to the user's blog dashboard after a short delay
+        setTimeout(() => {
+          navigate("/dashboard/blogs");
+        }, 500);
+      })
+      .catch(({ response }) => {
+        // Re-enable the publish button in case of an error
+        e.target.classList.remove("disable");
+        // Dismiss the loading toast
+        toast.dismiss(loadingToast);
+        // Show an error message with the response error
+        return toast.error(response.data.error);
+      });
   };
 
   const handleKeyDown = (e) => {
@@ -115,7 +191,7 @@ const PublishForm = () => {
             className="h-40 resize-none leading-7 pl-4 input-box "
             maxLength={characterLength} // Limit the length of the description
             defaultValue={des}
-            onChange={handleBogdecsriptionChange} // Handle description change
+            onChange={handleBlogdecsriptionChange} // Handle description change
           ></textarea>
           <p className="mt-1 text-dark-grey text-sm text-right">
             {characterLength - des.length} characters left{" "}
