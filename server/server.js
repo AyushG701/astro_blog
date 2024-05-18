@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import "dotenv/config";
 import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
-import User from "./Schema/User.js";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import admin from "firebase-admin";
@@ -11,6 +10,9 @@ import serviceAccountKey from "./react-blog-site-f66c6-firebase-adminsdk-ppykz-2
 import { getAuth } from "firebase/auth";
 import cloudinary from "cloudinary";
 import fse from "fs-extra";
+
+import User from "./Schema/User.js";
+import Blog from "./Schema/Blog.js";
 
 const server = express({
   limit: "20mb",
@@ -64,6 +66,23 @@ mongoose.connect(uri, {
 server.use(express.json());
 server.use(cors());
 
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  console.log(token);
+
+  if (token == null) {
+    return res.status(401).json({ error: "No access token" });
+  }
+  jwt.verify(token, process.env.SECRET_ACCESS_KEY, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Access token is invalid" });
+    }
+    req.user = user.id;
+    next();
+  });
+};
+
 //  controller
 //auth controller
 
@@ -72,6 +91,7 @@ const formatDatatoSend = (user) => {
     { id: user._id },
     process.env.SECRET_ACCESS_KEY,
   );
+  console.log(access_token);
   return {
     access_token,
     profileimg: user.personal_info.profile_img,
@@ -302,6 +322,115 @@ server.get("/get-upload-url", async (req, res) => {
     console.error("Error viewing photos:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+// to create the blog
+server.post("/create_blog", verifyJWT, (req, res) => {
+  // 'verifyJWT' middleware verifies the JWT and attaches the user id to 'req.user'
+  const authorId = req.user;
+
+  // Destructure necessary fields from the request body
+  let { title, des, banner, tags, content, draft, id } = req.body;
+
+  // Validate the blog's content
+  if (!title.length) {
+    return res
+      .status(403)
+      .json({ error: "You must provide a title to publish" });
+  }
+  if (!des.length || des.length > 200) {
+    return res.status(403).json({
+      error: "You must provide a description under 200 characters to publish",
+    });
+  }
+  if (!banner.length) {
+    return res
+      .status(403)
+      .json({ error: "You must provide a blog banner to publish" });
+  }
+  if (!content.blocks.length) {
+    return res
+      .status(403)
+      .json({ error: "There must be some blog content to publish it" });
+  }
+  if (!tags.length || tags.length > 10) {
+    return res.status(403).json({
+      error: "Provide tags in order to publish the blog, Maximum 10",
+    });
+  }
+
+  // Convert all tags to lowercase
+  tags = tags.map((tag) => tag.toLowerCase());
+
+  // Generate a unique blog ID if it doesn't exist, combining a sanitized title and a unique identifier
+  let blog_id =
+    id ||
+    title
+      .replace(/[^a-zA-Z0-9]/g, " ") // Remove non-alphanumeric characters
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .trim() + nanoid(); // Append a unique identifier
+
+  // Log blog details for debugging purposes
+  console.log(
+    "title---" +
+      title +
+      "banner---" +
+      banner +
+      "content---" +
+      JSON.stringify(content) +
+      "tags---" +
+      tags +
+      "des---" +
+      des +
+      "draft---" +
+      draft +
+      "id---" +
+      id +
+      "blog_id---" +
+      blog_id,
+  );
+
+  // Create a new blog entry in the database
+  let blog = new Blog({
+    title,
+    des,
+    banner,
+    content,
+    tags,
+    author: authorId,
+    blog_id,
+    draft: Boolean(draft), // Convert draft to a boolean
+  });
+
+  // Save the blog to the database
+  blog
+    .save()
+    .then((blog) => {
+      let incrementVal = draft ? 0 : 1; // Increment the post count only if the blog is not a draft
+
+      // Update the user's account info with the new post
+      User.findOneAndUpdate(
+        { _id: authorId },
+        {
+          $inc: { "account_info.total_posts": incrementVal }, // Increment total posts count
+          $push: { blogs: blog._id }, // Add the blog ID to the user's blogs array
+        },
+      )
+        .then((user) => {
+          // Respond with the new blog ID
+          return res.status(200).json({ id: blog.blog_id });
+        })
+        .catch((err) => {
+          // Handle errors related to updating the user's post count
+          return res
+            .status(500)
+            .json({ error: "Failed to update the post number" });
+        });
+    })
+    .catch((err) => {
+      // Handle errors related to saving the blog
+      return res.status(500).json({ error: err.message });
+    });
 });
 
 server.listen(PORT, () => {
