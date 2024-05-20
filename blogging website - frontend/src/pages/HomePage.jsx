@@ -9,6 +9,7 @@ import {
   activeTabRef,
   activeTagLineTagRef,
 } from "../components/InPageNavigation";
+import NoDataMessage from "../components/NoDataMessage";
 const HomePage = () => {
   let [blogs, setBlogs] = useState(null);
   let [trendingBlogs, setTrendingBlogs] = useState(null);
@@ -54,12 +55,12 @@ const HomePage = () => {
   //   fetching blog form the server with the tag
   const fetchBlogsByCategory = () => {
     axios
-      .get(import.meta.env.VITE_SERVER_DOMAIN + "/search-blogs", {
+      .post(import.meta.env.VITE_SERVER_DOMAIN + "/search-blogs", {
         tag: pageState,
       })
       .then(({ data }) => {
         console.log(data.blogs);
-        console.log(data);
+
         setBlogs(data.blogs);
       })
       .catch((err) => {
@@ -104,7 +105,7 @@ const HomePage = () => {
             <>
               {blogs == null ? (
                 <Loader />
-              ) : (
+              ) : blogs.length ? (
                 blogs.map((blog, i) => {
                   return (
                     <AnimationWrapper
@@ -118,12 +119,14 @@ const HomePage = () => {
                     </AnimationWrapper>
                   );
                 })
+              ) : (
+                <NoDataMessage message="No data related to this published" />
               )}
             </>
             <>
               {trendingBlogs == null ? (
                 <Loader />
-              ) : (
+              ) : trendingBlogs.length ? (
                 trendingBlogs.map((blog, i) => {
                   return (
                     <AnimationWrapper
@@ -134,6 +137,8 @@ const HomePage = () => {
                     </AnimationWrapper>
                   );
                 })
+              ) : (
+                <NoDataMessage message="no trending blogs" />
               )}
             </>
           </InpageNavigation>
@@ -173,7 +178,7 @@ const HomePage = () => {
             </h1>
             {trendingBlogs == null ? (
               <Loader />
-            ) : (
+            ) : trendingBlogs.lenght ? (
               trendingBlogs.map((blog, i) => {
                 return (
                   <AnimationWrapper
@@ -184,6 +189,8 @@ const HomePage = () => {
                   </AnimationWrapper>
                 );
               })
+            ) : (
+              <NoDataMessage message="no trending blogs" />
             )}
           </div>
         </div>
