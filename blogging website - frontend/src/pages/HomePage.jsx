@@ -4,9 +4,12 @@ import InpageNavigation from "../components/InPageNavigation";
 import axios from "axios";
 import Loader from "../components/Loader";
 import BlogPostCard from "../components/BlogPostCard";
+import MinimulBlogPost from "../components/MininalBlogPost";
 
 const HomePage = () => {
   let [blogs, setBlogs] = useState(null);
+  let [trendingBlogs, setTrendingBlogs] = useState(null);
+
   const fetchLatestBlogs = () => {
     axios
       .get(import.meta.env.VITE_SERVER_DOMAIN + "/latest-blog")
@@ -19,8 +22,22 @@ const HomePage = () => {
         console.log(err);
       });
   };
+
+  const fetchtrendingBlogs = () => {
+    axios
+      .get(import.meta.env.VITE_SERVER_DOMAIN + "/trending-blog")
+      .then(({ data }) => {
+        console.log(data.blogs);
+        console.log(data);
+        setTrendingBlogs(data.blogs);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   useEffect(() => {
     fetchLatestBlogs();
+    fetchtrendingBlogs();
   }, []);
   return (
     <AnimationWrapper>
@@ -50,8 +67,22 @@ const HomePage = () => {
                 })
               )}
             </>
-            <h1>this is latest page 2</h1>
-            <h1>this is latest page 2</h1>
+            <>
+              {trendingBlogs == null ? (
+                <Loader />
+              ) : (
+                trendingBlogs.map((blog, i) => {
+                  return (
+                    <AnimationWrapper
+                      key={i}
+                      transition={{ duration: 1, delay: i * 0.1 }}
+                    >
+                      <MinimulBlogPost blog={blog} idx={i} />
+                    </AnimationWrapper>
+                  );
+                })
+              )}
+            </>
           </InpageNavigation>
         </div>
         {/* filters and trending blogs */}
