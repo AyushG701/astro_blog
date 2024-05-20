@@ -11,18 +11,25 @@
   # "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NDg3ODM2NjA0NTgxZDU4ZTYyYmEyMCIsImlhdCI6MTcxNjAyNTM5OH0.Ym5XnzT6NOyg-jD06X3bgip3Sy8TyfSU4io2vK9TI48",
   
 
-GET http://localhost:3000/trending-blog
+# GET http://localhost:3000/trending-blog
+# Content-Type: application/json
+# Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NDg3ODM2NjA0NTgxZDU4ZTYyYmEyMCIsImlhdCI6MTcxNjAyNTM5OH0.Ym5XnzT6NOyg-jD06X3bgip3Sy8TyfSU4io2vK9TI48
+
+# {
+#   "title": "this is a testing  test blog",
+#   "banner": "https://example.com/image-url.jpeg",
+#   "des":"this is a short des",
+#   "content":{
+
+#       "blocks":[1, 2]
+#   },
+#   "tags":["tag1", "tag2"]
+    
+# }
+
+POST http://localhost:3000/search-blogs
 Content-Type: application/json
-Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NDg3ODM2NjA0NTgxZDU4ZTYyYmEyMCIsImlhdCI6MTcxNjAyNTM5OH0.Ym5XnzT6NOyg-jD06X3bgip3Sy8TyfSU4io2vK9TI48
 
 {
-  "title": "this is a testing  test blog",
-  "banner": "https://example.com/image-url.jpeg",
-  "des":"this is a short des",
-  "content":{
-
-      "blocks":[1, 2]
-  },
-  "tags":["tag1", "tag2"]
-    
+    "tag":"tag1"
 }
