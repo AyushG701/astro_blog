@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import AnimationWrapper from "../common/page-animation";
 import logo from "../imgs/logo.png";
 import blogBanner from "../imgs/blog banner.png";
@@ -10,9 +10,12 @@ import axios from "axios";
 import { EditorContext } from "../pages/Editor";
 import EditorJS from "@editorjs/editorjs";
 import { tools } from "./Tools";
+import { UserContext } from "../App";
 const BlogEditor = () => {
   //   const [theme, setTheme] = useContext(ThemeContext);
   // const [banner, setBanner] = useState(blogBanner);
+  const navigate = useNavigate();
+  const { blog_id } = useParams();
 
   let {
     blog,
@@ -23,16 +26,21 @@ const BlogEditor = () => {
     setEditorState,
   } = useContext(EditorContext);
 
+  let {
+    userAuth: { access_token },
+  } = useContext(UserContext);
   // useeffect
   useEffect(() => {
-    setTextEditor(
-      new EditorJS({
-        holder: "text-Editor",
-        data: Array.isArray(content) ? content[0] : content,
-        tools: tools,
-        placeholder: "Lets write an awasome Story",
-      }),
-    );
+    if (!textEditor.isReady) {
+      setTextEditor(
+        new EditorJS({
+          holder: "text-Editor",
+          data: Array.isArray(content) ? content[0] : content,
+          tools: tools,
+          placeholder: "Lets write an awasome Story",
+        }),
+      );
+    }
   }, []);
 
   //upload the Banner image
@@ -130,20 +138,88 @@ const BlogEditor = () => {
         });
     }
   };
+
+  // handle the save Draft
   const handleSaveDraft = (e) => {
-    console.log(e);
+    // Prevent the function from running if the button is disabled
+    if (e.target.className.includes("disable")) {
+      return;
+    }
+
+    // Validate the title field
+    if (!title.length) {
+      return toast.error("Write a title before Saving Draft");
+    }
+
+    // Display a loading toast message indicating that the post is being published
+    let loadingToast = toast.loading("Saving post...");
+    // Disable the publish button to prevent multiple submissions
+    e.target.classList.add("disable");
+
+    if (textEditor.isReady) {
+      // Get the content from the editor
+      textEditor.save().then((content) => {
+        // Create the blog object with necessary fields
+        let blogOBJ = {
+          title,
+          banner,
+          content,
+          tags,
+          des,
+          draft: true, // Set the draft status to true for saving
+        };
+
+        console.log(blog_id); // Log the blog ID for debugging purposes
+
+        // Send a POST request to the server to create the blog
+        axios
+          .post(
+            import.meta.env.VITE_SERVER_DOMAIN + "/create-blog",
+            { ...blogOBJ, id: blog_id }, // Include the blog ID if it exists
+            {
+              headers: {
+                Authorization: `Bearer ${access_token}`, // Add the authorization header with the user's token
+              },
+            },
+          )
+          .then(() => {
+            // Re-enable the publish button
+            e.target.classList.remove("disable");
+            // Dismiss the loading toast
+            toast.dismiss(loadingToast);
+            // Show a success message
+            toast.success("Saved 👍");
+
+            // Navigate to the user's blog dashboard after a short delay
+            setTimeout(() => {
+              navigate("/");
+            }, 500);
+          })
+          .catch(({ response }) => {
+            // Re-enable the publish button in case of an error
+            e.target.classList.remove("disable");
+            // Dismiss the loading toast
+            toast.dismiss(loadingToast);
+            // Show an error message with the response error
+            return toast.error(response.data.error);
+          });
+      });
+    }
   };
+
   const handleErrorImg = (e) => {
     console.log(e);
     let img = e.target;
     img.src = blogBanner;
   };
   // used for title needed when i dont want user to press enter as title is only one line
+
   const handleTitleKeyDown = (e) => {
     if (e.keyCode == 13) {
       e.preventDefault();
     }
   };
+
   // when we are using the title input basically scrolls so we stop that behavour and handle the text height
   const handleTitleChange = (e) => {
     let input = e.target;

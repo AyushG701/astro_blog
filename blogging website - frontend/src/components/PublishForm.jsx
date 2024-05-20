@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from "react";
 import AnimationWrapper from "../common/page-animation";
 import { EditorContext } from "../pages/Editor";
 import Tags from "./Tags";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { UserContext } from "../App";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -10,6 +10,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 const PublishForm = () => {
   let characterLength = 200;
   let tagLimit = 10;
+  const { blog_id } = useParams();
+
   let {
     blog: { banner, tags, title, des, content },
     setEditorState,
@@ -52,6 +54,7 @@ const PublishForm = () => {
   };
 
   const handlePublishBlog = (e) => {
+    console.log(e);
     // Prevent the function from running if the button is disabled
     if (e.target.className.includes("disable")) {
       return;
@@ -112,7 +115,7 @@ const PublishForm = () => {
 
         // Navigate to the user's blog dashboard after a short delay
         setTimeout(() => {
-          navigate("/dashboard/blogs");
+          navigate("/dashboard");
         }, 500);
       })
       .catch(({ response }) => {
@@ -146,6 +149,7 @@ const PublishForm = () => {
 
   return (
     <AnimationWrapper>
+      <Toaster />
       {/* Section wrapper with responsive grid layout */}
       <section className="w-screen min-h-screen grid items-center lg:grid-cols-2 py-16 lg:gap-4 ">
         {/* Close button to exit the editor */}

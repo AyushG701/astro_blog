@@ -325,7 +325,7 @@ server.get("/get-upload-url", async (req, res) => {
 });
 
 // to create the blog
-server.post("/create_blog", verifyJWT, (req, res) => {
+server.post("/create-blog", verifyJWT, (req, res) => {
   // 'verifyJWT' middleware verifies the JWT and attaches the user id to 'req.user'
   const authorId = req.user;
 
@@ -338,25 +338,28 @@ server.post("/create_blog", verifyJWT, (req, res) => {
       .status(403)
       .json({ error: "You must provide a title to publish" });
   }
-  if (!des.length || des.length > 200) {
-    return res.status(403).json({
-      error: "You must provide a description under 200 characters to publish",
-    });
-  }
-  if (!banner.length) {
-    return res
-      .status(403)
-      .json({ error: "You must provide a blog banner to publish" });
-  }
-  if (!content.blocks.length) {
-    return res
-      .status(403)
-      .json({ error: "There must be some blog content to publish it" });
-  }
-  if (!tags.length || tags.length > 10) {
-    return res.status(403).json({
-      error: "Provide tags in order to publish the blog, Maximum 10",
-    });
+
+  if (!draft) {
+    if (!des.length || des.length > 200) {
+      return res.status(403).json({
+        error: "You must provide a description under 200 characters to publish",
+      });
+    }
+    if (!banner.length) {
+      return res
+        .status(403)
+        .json({ error: "You must provide a blog banner to publish" });
+    }
+    if (!content.blocks.length) {
+      return res
+        .status(403)
+        .json({ error: "There must be some blog content to publish it" });
+    }
+    if (!tags.length || tags.length > 10) {
+      return res.status(403).json({
+        error: "Provide tags in order to publish the blog, Maximum 10",
+      });
+    }
   }
 
   // Convert all tags to lowercase
@@ -429,6 +432,47 @@ server.post("/create_blog", verifyJWT, (req, res) => {
     })
     .catch((err) => {
       // Handle errors related to saving the blog
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+// the latest blog  gets data from the database
+server.get("/latest-blog", (req, res) => {
+  // we want only the blog with draft false
+  let maxLimit = 5;
+  Blog.find({ draft: false })
+    .populate(
+      "author",
+      "personal_info.profile_img personal_info.username personal_info.fullname -_id",
+    )
+    .sort({ publishedAt: -1 })
+    .select("blog_id title des banner activity tags publishedAt -_id")
+    .limit(maxLimit)
+    .then((blogs) => {
+      return res.status(200).json({ blogs });
+    })
+    .catch((err) => {
+      return res.status(400).json({ error: err.message });
+    });
+});
+
+server.get("/trending-blog", (req, res) => {
+  let maxLimit = 5;
+  Blog.find({ draft: false })
+    .populate(
+      "author",
+      "personal_info.profile_img personal_info.username personal_info.fullname -_id",
+    )
+    .sort({
+      publishedAt: -1,
+      "activity.total_read": -1,
+      "activity.total_likes": -1,
+    })
+    .limit(maxLimit)
+    .then((blogs) => {
+      return res.status(200).json({ blogs });
+    })
+    .catch((err) => {
       return res.status(500).json({ error: err.message });
     });
 });
