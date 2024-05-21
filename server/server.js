@@ -437,9 +437,11 @@ server.post("/create-blog", verifyJWT, (req, res) => {
 });
 
 // the latest blog  gets data from the database
-server.get("/latest-blog", (req, res) => {
+server.post("/latest-blog", (req, res) => {
   // we want only the blog with draft false
   let maxLimit = 5;
+  let { page } = req.body;
+
   Blog.find({ draft: false })
     .populate(
       "author",
@@ -447,6 +449,7 @@ server.get("/latest-blog", (req, res) => {
     )
     .sort({ publishedAt: -1 })
     .select("blog_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1) * maxLimit)
     .limit(maxLimit)
     .then((blogs) => {
       return res.status(200).json({ blogs });
@@ -501,6 +504,20 @@ server.post("/search-blogs", (req, res) => {
     })
     .catch((err) => {
       return res.status(500).json({ error: err.message });
+    });
+});
+// to get the latest blogs count pagenation
+server.post("/all-latest-blogs-count", (req, res) => {
+  Blog.countDocuments({ draft: false })
+    .then((count) => {
+      return res.status(200).json({
+        totalDocs: count,
+      });
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        error: err.message,
+      });
     });
 });
 

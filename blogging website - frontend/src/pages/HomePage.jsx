@@ -10,8 +10,18 @@ import {
   activeTagLineTagRef,
 } from "../components/InPageNavigation";
 import NoDataMessage from "../components/NoDataMessage";
+import { filterPaginationData } from "../common/filter-pagination-data";
+import LoadMoreData from "../components/LoadMoreData";
 const HomePage = () => {
   let [blogs, setBlogs] = useState(null);
+
+  // changing the way of getting the blogs for pagination
+  // blogs = {
+  //   results: [{}, {}, {}],
+  //   page: 1,
+  //   totalDocs: 10,
+  // };
+
   let [trendingBlogs, setTrendingBlogs] = useState(null);
   let [pageState, setPageState] = useState("home");
 
@@ -26,13 +36,22 @@ const HomePage = () => {
     "travel",
     "motivation",
   ];
-  const fetchLatestBlogs = () => {
+
+  const fetchLatestBlogs = async ({ page = 1 }) => {
     axios
-      .get(import.meta.env.VITE_SERVER_DOMAIN + "/latest-blog")
-      .then(({ data }) => {
+      .post(import.meta.env.VITE_SERVER_DOMAIN + "/latest-blog", { page: page })
+      .then(async ({ data }) => {
         console.log(data.blogs);
-        console.log(data);
-        setBlogs(data.blogs);
+
+        const formatData = await filterPaginationData({
+          state: blogs,
+          data: data.blogs,
+          page,
+          countRoute: "/all-latest-blogs-count",
+        });
+        // setBlogs(data.blogs);
+        console.log(formatData);
+        setBlogs(formatData);
       })
       .catch((err) => {
         console.log(err);
@@ -73,7 +92,7 @@ const HomePage = () => {
     activeTabRef.current.click();
 
     if (pageState == "home") {
-      fetchLatestBlogs();
+      fetchLatestBlogs({ page: 1 });
     }
     if (!trendingBlogs) {
       fetchtrendingBlogs();
@@ -105,8 +124,8 @@ const HomePage = () => {
             <>
               {blogs == null ? (
                 <Loader />
-              ) : blogs.length ? (
-                blogs.map((blog, i) => {
+              ) : blogs.results.length ? (
+                blogs.results.map((blog, i) => {
                   return (
                     <AnimationWrapper
                       key={i}
@@ -122,6 +141,12 @@ const HomePage = () => {
               ) : (
                 <NoDataMessage message="No data related to this published" />
               )}
+              <LoadMoreData
+                state={blogs}
+                fetchDataFun={
+                  pageState == "home" ? fetchLatestBlogs : fetchBlogsByCategory
+                }
+              />
             </>
             <>
               {trendingBlogs == null ? (
