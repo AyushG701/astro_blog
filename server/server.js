@@ -521,6 +521,32 @@ server.post("/all-latest-blogs-count", (req, res) => {
     });
 });
 
+server.post("/search-blogs-count", (req, res) => {
+  let { tag, query, author } = req.body;
+  console.log(author);
+  let findQuery;
+
+  if (tag) {
+    findQuery = { tags: tag, draft: false };
+  } else if (query) {
+    findQuery = { title: new RegExp(query, "i"), draft: false };
+  } else if (author) {
+    findQuery = { author, draft: false };
+  }
+
+  Blog.countDocuments(findQuery)
+    .then((count) => {
+      return res.status(200).json({
+        totalDocs: count,
+      });
+    })
+    .catch((err) => {
+      return res.status(400).json({
+        error: err.message,
+      });
+    });
+});
+
 server.listen(PORT, () => {
   console.log("listening on the port -> " + PORT);
 });
