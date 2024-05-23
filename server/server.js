@@ -482,10 +482,16 @@ server.get("/trending-blog", (req, res) => {
 
 //  to search blogs and also filter it
 server.post("/search-blogs", (req, res) => {
-  let { tag } = req.body;
-  let findQuery = { tags: tag, draft: false };
+  let { tag, query, page } = req.body;
+  console.log(tag);
+  let findQuery;
+  let maxLimit = 3;
 
-  let maxLimit = 5;
+  if (tag) {
+    findQuery = { tags: tag, draft: false };
+  } else if (query) {
+    findQuery = { draft: false, title: new RegExp(query, "i") };
+  }
 
   Blog.find(findQuery)
     .populate(
@@ -494,10 +500,9 @@ server.post("/search-blogs", (req, res) => {
     )
     .sort({
       publishedAt: -1,
-      "activity.total_read": -1,
-      "activity.total_likes": -1,
     })
     .select("blog_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1) * maxLimit)
     .limit(maxLimit)
     .then((blogs) => {
       return res.status(200).json({ blogs });
@@ -544,6 +549,21 @@ server.post("/search-blogs-count", (req, res) => {
       return res.status(400).json({
         error: err.message,
       });
+    });
+});
+// saerch the user profile
+server.post("/search-users", (req, res) => {
+  let { query } = req.body;
+  User.find({ "personal_info.username": new RegExp(query, "i") })
+    .limit(50)
+    .select(
+      "personal_info.fullname personal_info.username personal_info.profile_img -_id",
+    )
+    .then((users) => {
+      return res.status(200).json({ users });
+    })
+    .catch((err) => {
+      return res.status(500).json({ error: err.message });
     });
 });
 
