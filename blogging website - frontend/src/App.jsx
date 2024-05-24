@@ -8,6 +8,7 @@ import Editor from "./pages/Editor.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
 import PageNotFound from "./pages/PageNotFound.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 export const UserContext = createContext({});
 const App = () => {
   const [userAuth, setUserAuth] = useState({});
@@ -29,6 +30,7 @@ const App = () => {
           <Route path="signin" element={<UserAuthForm type={"sign_in"} />} />
           <Route path="signup" element={<UserAuthForm type={"sign_up"} />} />
           <Route path="/search/:query" element={<SearchPage />} />
+          <Route path="user/:id" element={<ProfilePage />} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
