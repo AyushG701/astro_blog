@@ -8,6 +8,7 @@ import LoadMoreData from "../components/LoadMoreData";
 import NoDataMessage from "../components/NoDataMessage";
 import axios from "axios";
 import { filterPaginationData } from "../common/filter-pagination-data";
+import UserCard from "../components/UserCard";
 const SearchPage = () => {
   const { query } = useParams();
   let [blogs, setBlogs] = useState(null);
@@ -58,6 +59,30 @@ const SearchPage = () => {
     setUsers(null);
   };
 
+  const UserCardWrapper = () => {
+    console.log(users);
+    return (
+      <>
+        {users == null ? (
+          <Loader />
+        ) : users.length ? (
+          users.map((user, i) => {
+            return (
+              <AnimationWrapper
+                key={i}
+                transition={{ duration: 1, delay: i * 0.08 }}
+              >
+                <UserCard user={user} key={i} />
+              </AnimationWrapper>
+            );
+          })
+        ) : (
+          <NoDataMessage message="No user found" />
+        )}
+      </>
+    );
+  };
+
   return (
     <>
       <section className="h-cover flex justify-center gap-10">
@@ -88,7 +113,17 @@ const SearchPage = () => {
               )}
               <LoadMoreData state={blogs} fetchDataFun={searchBlogs} />
             </>
+
+            <UserCardWrapper />
           </InpageNavigation>
+        </div>
+
+        <div className="min-w-[40%] lg:min-w-[350px] max-w-min border-l border-grey pl-8 pt-3 max-md:hidden ">
+          <h1 className="font-medium text-xl mb-8 ">
+            user related to search
+            <i class="fa-regular fa-user mt-1 ml-1 "></i>
+          </h1>
+          <UserCardWrapper />
         </div>
       </section>
     </>
