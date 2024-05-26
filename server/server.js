@@ -482,13 +482,13 @@ server.get("/trending-blog", (req, res) => {
 
 //  to search blogs and also filter it
 server.post("/search-blogs", (req, res) => {
-  let { tag, query, page, author } = req.body;
+  let { tag, query, page, author, limit, eliminate_blog } = req.body;
   console.log(tag);
   let findQuery;
-  let maxLimit = 3;
+  let maxLimit = limit ? limit : 2;
 
   if (tag) {
-    findQuery = { tags: tag, draft: false };
+    findQuery = { tags: tag, draft: false, blog_id: { $ne: eliminate_blog } };
   } else if (query) {
     findQuery = { draft: false, title: new RegExp(query, "i") };
   } else if (author) {
@@ -602,7 +602,7 @@ server.post("/get-blog", (req, res) => {
       ).catch((err) => {
         return res.status(500).json({ error: err.message });
       });
-      return res.status(200).json(blog);
+      return res.status(200).json({ blog });
     })
     .catch((err) => {
       console.log(err);
