@@ -27,10 +27,10 @@
     
 # }
 
-POST http://localhost:3000/get-profile
+POST http://localhost:3000/get-blog
 Content-Type: application/json
 
 {
-  "username":"ayussh-9aFe"
+  "blog_id":"this-is-blog7bqxoSZBDN7Ba86mMROmF"
        
 }

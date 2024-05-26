@@ -9,6 +9,9 @@ import NoDataMessage from "../components/NoDataMessage";
 import PageNotFound from "../pages/PageNotFound.jsx";
 import { UserContext } from "../App.jsx";
 import { Link } from "react-router-dom";
+import AboutUser from "../components/AboutUser.jsx";
+import { filterPaginationData } from "../common/filter-pagination-data.jsx";
+import BlogPostCard from "../components/BlogPostCard.jsx";
 
 export const profileDataStructure = {
   personal_info: {
@@ -53,13 +56,14 @@ const ProfilePage = () => {
         username: profileId,
       })
       .then(({ data: user }) => {
+        console.log(user);
         if (user != null) {
           setProfile(user);
         }
         setProfileLoaded(profileId);
         setLoading(false);
 
-        // getBlog({ user_id: user._id });
+        getBlog({ user_id: user._id });
       })
       .catch((err) => {
         console.log(err.message);
@@ -76,6 +80,34 @@ const ProfilePage = () => {
   let {
     userAuth: { username },
   } = useContext(UserContext);
+
+  const getBlog = ({ page = 1, user_id }) => {
+    user_id = user_id == undefined ? blog.user_id : user_id;
+
+    axios
+      .post(import.meta.env.VITE_SERVER_DOMAIN + "/search-blogs", {
+        author: user_id,
+        page,
+      })
+      .then(async ({ data }) => {
+        console.log("tha data is ", data);
+
+        let formattedData = await filterPaginationData({
+          state: blog,
+          data: data.blogs,
+          page,
+          countRoute: "/search-blogs-count",
+          data_to_send: { author: user_id },
+        });
+
+        formattedData.user_id = user_id;
+
+        setBlog(formattedData);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
   return (
     <AnimationWrapper>
       {loading ? (
@@ -104,9 +136,15 @@ const ProfilePage = () => {
                 ""
               )}
             </div>
+            <AboutUser
+              className="max-md:hidden"
+              bio={bio}
+              social_links={social_links}
+              joinedAt={joinedAt}
+            />
           </div>
           {/* rendering blogs some error left to solve */}
-          {/* <div className="max-md:mt-12 w-full ">
+          <div className="max-md:mt-12 w-full ">
             <InpageNavigation
               routes={["blogs Published", "About"]}
               defaultHidden={["About"]}
@@ -121,7 +159,7 @@ const ProfilePage = () => {
                         key={i}
                         transition={{ duration: 1, delay: i * 0.1 }}
                       >
-                        <BlogPost
+                        <BlogPostCard
                           content={blog}
                           author={blog.author.personal_info}
                         />
@@ -132,15 +170,15 @@ const ProfilePage = () => {
                   <NoDataMessage message="No Post Found" />
                 )}
 
-                <LoadMoreData
-                  state={blog}
-                  fetchDataFun={<>the data is send</>}
-                />
+                <LoadMoreData state={blog} fetchDataFun={getBlog} />
               </>
-
-             
+              <AboutUser
+                bio={bio}
+                social_links={social_links}
+                joinedAt={joinedAt}
+              />
             </InpageNavigation>
-          </div> */}
+          </div>
         </section>
       ) : (
         <PageNotFound />

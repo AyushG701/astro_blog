@@ -482,7 +482,7 @@ server.get("/trending-blog", (req, res) => {
 
 //  to search blogs and also filter it
 server.post("/search-blogs", (req, res) => {
-  let { tag, query, page } = req.body;
+  let { tag, query, page, author } = req.body;
   console.log(tag);
   let findQuery;
   let maxLimit = 3;
@@ -491,6 +491,8 @@ server.post("/search-blogs", (req, res) => {
     findQuery = { tags: tag, draft: false };
   } else if (query) {
     findQuery = { draft: false, title: new RegExp(query, "i") };
+  } else if (author) {
+    findQuery = { author, draft: false };
   }
 
   Blog.find(findQuery)
@@ -528,7 +530,7 @@ server.post("/all-latest-blogs-count", (req, res) => {
 
 server.post("/search-blogs-count", (req, res) => {
   let { tag, query, author } = req.body;
-  // console.log(author);
+  console.log(author);
   let findQuery;
 
   if (tag) {
@@ -573,6 +575,34 @@ server.post("/get-profile", (req, res) => {
     .select("-personal_info.password -google_auth -updatedAt -blogs")
     .then((user) => {
       return res.status(200).json(user);
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+// route to geth teh blog from its id
+server.post("/get-blog", (req, res) => {
+  let { blog_id } = req.body;
+  let incrementVal = 1;
+  Blog.findOneAndUpdate(
+    { blog_id },
+    { $inc: { "activity.total_reads": incrementVal } },
+  )
+    .populate(
+      "author",
+      "personal_info.fullname personal_info.username personal_info.profile_img",
+    )
+    .select("title des content banner activity publishedAt blog_id tags")
+    .then((blog) => {
+      User.findOneAndUpdate(
+        { "personal_info.username": blog.author.personal_info.username },
+        { $inc: { "account_info.total_reads": incrementVal } },
+      ).catch((err) => {
+        return res.status(500).json({ error: err.message });
+      });
+      return res.status(200).json(blog);
     })
     .catch((err) => {
       console.log(err);
