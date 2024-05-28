@@ -6,7 +6,7 @@ import Loader from "../components/Loader";
 import { getDay } from "../common/date";
 import BlogInteraction from "../components/BlogInteraction";
 import BlogPostCard from "../components/BlogPostCard";
-
+import BlogContent from "../components/BlogContent";
 export const BlogStructure = {
   title: "",
   content: "",
@@ -62,9 +62,15 @@ const BlogPage = () => {
   };
 
   useEffect(() => {
+    resetState();
     fetchBlog({ blog_id });
   }, [blog_id]);
 
+  const resetState = () => {
+    setBlog(BlogStructure);
+    setSimilarBlog(null);
+    setLoading(true);
+  };
   return (
     <AnimationWrapper>
       {loading ? (
@@ -115,15 +121,15 @@ const BlogPage = () => {
 
             <BlogInteraction />
             {/* blog_content */}
-            {/* <div className="my-12 font-gelasio blog-page-content">
-            {content[0].blocks.map((block, i) => {
-              return (
-                <div key={i} className="my-4 md:my-8 ">
-                  <BlogContent block={block} />
-                </div>
-              );
-            })}
-          </div> */}
+            <div className="my-12 font-gelasio blog-page-content">
+              {content[0].blocks.map((block, i) => {
+                return (
+                  <div key={i} className="my-4 md:my-8 ">
+                    <BlogContent block={block} />
+                  </div>
+                );
+              })}
+            </div>
 
             <BlogInteraction />
             {/* similar blogs  */}
