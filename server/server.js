@@ -333,6 +333,7 @@ server.post("/create-blog", verifyJWT, (req, res) => {
   let { title, des, banner, tags, content, draft, id } = req.body;
 
   // Validate the blog's content
+
   if (!title.length) {
     return res
       .status(403)
@@ -393,47 +394,61 @@ server.post("/create-blog", verifyJWT, (req, res) => {
       blog_id,
   );
 
-  // Create a new blog entry in the database
-  let blog = new Blog({
-    title,
-    des,
-    banner,
-    content,
-    tags,
-    author: authorId,
-    blog_id,
-    draft: Boolean(draft), // Convert draft to a boolean
-  });
-
-  // Save the blog to the database
-  blog
-    .save()
-    .then((blog) => {
-      let incrementVal = draft ? 0 : 1; // Increment the post count only if the blog is not a draft
-
-      // Update the user's account info with the new post
-      User.findOneAndUpdate(
-        { _id: authorId },
-        {
-          $inc: { "account_info.total_posts": incrementVal }, // Increment total posts count
-          $push: { blogs: blog._id }, // Add the blog ID to the user's blogs array
-        },
-      )
-        .then((user) => {
-          // Respond with the new blog ID
-          return res.status(200).json({ id: blog.blog_id });
-        })
-        .catch((err) => {
-          // Handle errors related to updating the user's post count
-          return res
-            .status(500)
-            .json({ error: "Failed to update the post number" });
-        });
-    })
-    .catch((err) => {
-      // Handle errors related to saving the blog
-      return res.status(500).json({ error: err.message });
+  if (id) {
+    Blog.findOneAndUpdate(
+      { blog_id },
+      { title, des, banner, content, tags, draft: draft ? draft : false },
+    )
+      .then((blog) => {
+        return res.status(200).json({ id: blog_id });
+      })
+      .catch((err) => {
+        return res
+          .status(500)
+          .json({ error: "Failed to update total post number" + err });
+      });
+  } else {
+    // Create a new blog entry in the database
+    let blog = new Blog({
+      title,
+      des,
+      banner,
+      content,
+      tags,
+      author: authorId,
+      blog_id,
+      draft: Boolean(draft), // Convert draft to a boolean
     });
+    // Save the blog to the database
+    blog
+      .save()
+      .then((blog) => {
+        let incrementVal = draft ? 0 : 1; // Increment the post count only if the blog is not a draft
+
+        // Update the user's account info with the new post
+        User.findOneAndUpdate(
+          { _id: authorId },
+          {
+            $inc: { "account_info.total_posts": incrementVal }, // Increment total posts count
+            $push: { blogs: blog._id }, // Add the blog ID to the user's blogs array
+          },
+        )
+          .then((user) => {
+            // Respond with the new blog ID
+            return res.status(200).json({ id: blog.blog_id });
+          })
+          .catch((err) => {
+            // Handle errors related to updating the user's post count
+            return res
+              .status(500)
+              .json({ error: "Failed to update the post number" });
+          });
+      })
+      .catch((err) => {
+        // Handle errors related to saving the blog
+        return res.status(500).json({ error: err.message });
+      });
+  }
 });
 
 // the latest blog  gets data from the database
@@ -584,8 +599,8 @@ server.post("/get-profile", (req, res) => {
 
 // route to geth teh blog from its id
 server.post("/get-blog", (req, res) => {
-  let { blog_id } = req.body;
-  let incrementVal = 1;
+  let { blog_id, mode } = req.body;
+  let incrementVal = mode !== "edit" ? 1 : 0;
   Blog.findOneAndUpdate(
     { blog_id },
     { $inc: { "activity.total_reads": incrementVal } },
@@ -602,6 +617,12 @@ server.post("/get-blog", (req, res) => {
       ).catch((err) => {
         return res.status(500).json({ error: err.message });
       });
+
+      if (blog.draft && !draft) {
+        return res
+          .status(500)
+          .json({ error: "You can't read this draft blog" });
+      }
       return res.status(200).json({ blog });
     })
     .catch((err) => {
