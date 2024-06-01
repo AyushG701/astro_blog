@@ -24,6 +24,7 @@ const BlogPage = () => {
   const [blog, setBlog] = useState(BlogStructure);
   const [similarBlog, setSimilarBlog] = useState(BlogStructure);
   const [loading, setLoading] = useState(true);
+  const [isLikedByUser, setIsLikedByUser] = useState(false);
 
   let {
     title,
@@ -80,8 +81,8 @@ const BlogPage = () => {
           value={{
             blog,
             setBlog,
-            // SetisLikedByUser,
-            // isLikedByUser,
+            setIsLikedByUser,
+            isLikedByUser,
             // setTotalParentCommentLoaded,
             // totalParentCommentLoaded,
             // commentWrapper,
