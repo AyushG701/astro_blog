@@ -633,33 +633,7 @@ server.post("/get-blog", (req, res) => {
 });
 
 // route to update the like and
-// server.post("/like-blog", verifyJWT, (req, res) => {
-//   let user_id = req.user;
-//   let { blog_id, isLikedByUser } = req.body;
-//   let incrementalVal = !isLikedByUser ? 1 : -1;
-//   Blog.findOneAndUpdate(
-//     { _id: blog_id },
-//     { $inc: { "activity.total_likes": incrementalVal } },
-//   ).then((blog) => {
-//     if (!isLikedByUser) {
-//       let like = new Notification({
-//         type: "like",
-//         blog: blog_id,
-//         Notification_for: blog.author,
-//         user: user_id,
-//       });
 
-//       like
-//         .save()
-//         .then((notification) => {
-//           return res.status(200).json({ liked_by_user: true });
-//         })
-//         .catch((err) => {
-//           return res.status(500).json({ message: "Error saving notification" });
-//         });
-//     }
-//   });
-// });
 server.post("/like-blog", verifyJWT, (req, res) => {
   let user_id = req.user;
 
