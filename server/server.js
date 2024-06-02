@@ -685,6 +685,7 @@ server.post("/like-blog", verifyJWT, (req, res) => {
   });
 });
 
+// routes to like the user
 server.post("/isliked-by-user", verifyJWT, (req, res) => {
   let user_id = req.user;
 
@@ -702,6 +703,7 @@ server.post("/isliked-by-user", verifyJWT, (req, res) => {
       });
     });
 });
+
 server.listen(PORT, () => {
   console.log("listening on the port -> " + PORT);
 });

@@ -7,6 +7,8 @@ import { getDay } from "../common/date";
 import BlogInteraction from "../components/BlogInteraction";
 import BlogPostCard from "../components/BlogPostCard";
 import BlogContent from "../components/BlogContent";
+import CommentContainer from "../components/Comments";
+
 export const BlogStructure = {
   title: "",
   content: "",
@@ -25,17 +27,19 @@ const BlogPage = () => {
   const [similarBlog, setSimilarBlog] = useState(BlogStructure);
   const [loading, setLoading] = useState(true);
   const [isLikedByUser, setIsLikedByUser] = useState(false);
-
+  const [commentWrapper, setCommentWrapper] = useState(true);
+  const [totalParentCommentLoaded, setTotalParentCommentLoaded] = useState(0);
   let {
     title,
     content,
     banner,
     author: {
-      personal_info: { fullname, username, profile_img },
+      personal_info: { fullname, username: author_username, profile_img },
     },
     publishedAt,
   } = blog;
 
+  console.log(totalParentCommentLoaded);
   const fetchBlog = () => {
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + "/get-blog", { blog_id })
@@ -43,6 +47,7 @@ const BlogPage = () => {
         console.log(blog);
         setBlog(blog);
 
+        // search blog
         axios
           .post(import.meta.env.VITE_SERVER_DOMAIN + "/search-blogs", {
             tag: blog.tags[0],
@@ -71,6 +76,8 @@ const BlogPage = () => {
     setBlog(BlogStructure);
     setSimilarBlog(null);
     setLoading(true);
+    setCommentWrapper(false);
+    setTotalParentCommentLoaded(0);
   };
   return (
     <AnimationWrapper>
@@ -83,13 +90,13 @@ const BlogPage = () => {
             setBlog,
             setIsLikedByUser,
             isLikedByUser,
-            // setTotalParentCommentLoaded,
-            // totalParentCommentLoaded,
-            // commentWrapper,
-            // setCommentWrapper,
+            setTotalParentCommentLoaded,
+            totalParentCommentLoaded,
+            commentWrapper,
+            setCommentWrapper,
           }}
         >
-          {/* // <CommentContainer /> */}
+          <CommentContainer />
           <div className="max-w-[900px] center py-10 max-lg:px-[5vw]">
             <img src={banner} className="aspect-video " />
 
@@ -100,7 +107,7 @@ const BlogPage = () => {
                 <div className="flex gap-5 items-start ">
                   <img
                     onClick={() => {
-                      navigate(`/user/${username}`);
+                      navigate(`/user/${author_username}`);
                     }}
                     className="w-12 h-12 rounded-full"
                     src={profile_img}
@@ -108,8 +115,8 @@ const BlogPage = () => {
                   <p className="capitalize">
                     {fullname}
                     <br />@
-                    <Link className="underline" to={`/user/${username}`}>
-                      {username}
+                    <Link className="underline" to={`/user/${author_username}`}>
+                      {author_username}
                     </Link>
                   </p>
                 </div>
