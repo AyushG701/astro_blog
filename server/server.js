@@ -14,6 +14,7 @@ import fse from "fs-extra";
 import User from "./Schema/User.js";
 import Blog from "./Schema/Blog.js";
 import Notification from "./Schema/Notification.js";
+import Comment from "./Schema/Comment.js";
 
 const server = express({
   limit: "20mb",
@@ -701,6 +702,80 @@ server.post("/isliked-by-user", verifyJWT, (req, res) => {
       return res.status(500).json({
         err: err.message,
       });
+    });
+});
+
+server.post("/add-comment", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { _id, comment, replying_to, blog_author } = req.body;
+  if (!comment.length) {
+    return res
+      .status(403)
+      .json({ error: "Write something to leave a comment" });
+  }
+  // creating a comment document
+  let commentObj = new Comment({
+    blog_id: _id,
+    blog_author,
+    comment,
+    commented_by: user_id,
+    // isReply,
+  });
+  // then save it
+  commentObj.save().then((commentFile) => {
+    let { comment, commentedAt, children } = commentFile;
+    Blog.findOneAndUpdate(
+      { _id },
+      {
+        $push: { comments: commentFile._id },
+        $inc: { "activity.total_comments": 1 },
+        "acticity.total_parent_comments": 1,
+      },
+    ).then((blog) => {
+      console.log("New Comment created");
+    });
+
+    let notificationObj = {
+      type: "comment",
+      blog: _id,
+      notification_for: blog_author,
+      user: user_id,
+      comment: commentFile._id,
+    };
+    new Notification(notificationObj)
+      .save()
+      .then((notification) => console.log("new notification created"));
+
+    return res.status(200).json({
+      comment,
+      commentedAt,
+      _id: commentFile._id,
+      children,
+    });
+  });
+});
+
+// get the parent comments not replies
+server.post("/get-blog-comments", (req, res) => {
+  let { blog_id, skip } = req.body;
+  let maxLimit = 5;
+  Comment.find({ blog_id, isReply: false })
+    .populate(
+      "commented_by",
+      "personal_info.username, personal_ingo.fullname personal_info.profile_img",
+    )
+    .skip(skip)
+    .limit(maxLimit)
+    .sort({
+      commentedAt: -1,
+    })
+    .then((comment) => {
+      return res.status(200).json({ comment });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
     });
 });
 

@@ -24,10 +24,10 @@ export const fetchComments = async ({
     })
     .then(({ data }) => {
       console.log("the data in common in ", data.comment);
-      // let {comment} = data;
-      // comment.map((comment)=>{
-      //    comment.childrenLevel = 0
-      //  })
+      let { comment } = data;
+      comment.map((comment) => {
+        comment.childrenLevel = 0;
+      });
 
       setParentCommentCountFun((preVal) => preVal + data.comment.length);
 
