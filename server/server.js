@@ -271,7 +271,65 @@ server.get("/get-signature", (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
+// change password route
+server.post("/change-password", verifyJWT, (req, res) => {
+  let { currentPassword, newPassword } = req.body;
+  // validataion
+  if (
+    !passwordRegex.test(currentPassword) ||
+    !passwordRegex.test(newPassword)
+  ) {
+    return res.status(403).json({
+      error:
+        "Password must be at least 6 characters long and less than 20 characters long and must contain at least 1 numeric, 1 lowercase, and 1 uppercase character",
+    });
+  }
+  User.findOne({ _id: req.user })
+    .then((user) => {
+      if (user.google_auth) {
+        return res.status(500).json({
+          error: "Account was created using Google /Can't change Password",
+        });
+      }
+      // password comparing
+      bcrypt.compare(
+        currentPassword,
+        user.personal_info.password,
+        (err, result) => {
+          if (err) {
+            return res.status(500).json({
+              error:
+                "An error occurred while changing your password. Please try again",
+            });
+          }
+          if (!result) {
+            return res
+              .status(403)
+              .json({ error: "Current password is incorrect" });
+          }
+          bcrypt.hash(newPassword, slatRounds, (err, hashed_password) => {
+            User.findOneAndUpdate(
+              { _id: req.user },
+              { "personal_info.password": hashed_password },
+            )
+              .then((u) => {
+                return res.status(200).json({ status: "Password updated" });
+              })
+              .catch((err) => {
+                return res.status(500).json({
+                  error:
+                    "An error occurred while changing your password. Please try again",
+                });
+              });
+          });
+        },
+      );
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(403).json({ error: "User not found" });
+    });
+});
 //upload image url root
 server.post("/do-something-with-photo", async (req, res) => {
   // based on the public_id and the version that the (potentially malicious) user is submitting...

@@ -27,11 +27,19 @@
     
 # }
 
-POST http://localhost:3000/like-blog
+# POST http://localhost:3000/like-blog
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NDg3ODM2NjA0NTgxZDU4ZTYyYmEyMCIsImlhdCI6MTcxNjAyNTM5OH0.Ym5XnzT6NOyg-jD06X3bgip3Sy8TyfSU4io2vK9TI48
+
+# {
+#   "_id":"165198498555115198",
+#       "isLikedByUser": false 
+# }
+POST http://localhost:3000/change-password
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NDg3ODM2NjA0NTgxZDU4ZTYyYmEyMCIsImlhdCI6MTcxNjAyNTM5OH0.Ym5XnzT6NOyg-jD06X3bgip3Sy8TyfSU4io2vK9TI48
 
 {
-  "_id":"165198498555115198",
-      "isLikedByUser": false 
+  "currentPassword":"Datapass1",
+      "newPassword": "Newdatapass1" 
 }
