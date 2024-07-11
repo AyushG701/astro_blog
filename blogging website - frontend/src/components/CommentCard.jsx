@@ -77,13 +77,26 @@ const CommentCard = ({ index, commentData, leftVal = 0 }) => {
   const getParentIndex = () => {
     let startingIndex = index - 1;
     try {
+      // Check if index is within bounds
+      if (index <= 0 || index >= commentsArr.length) {
+        return undefined;
+      }
+
+      // Loop to find the parent index
       while (
+        startingIndex >= 0 &&
         commentsArr[startingIndex].childrenLevel >
-        commentsArr[index].childrenLevel
+          commentsArr[index].childrenLevel
       ) {
         startingIndex--;
       }
-    } catch {
+
+      // Check if startingIndex is out of bounds after the loop
+      if (startingIndex < 0) {
+        return undefined;
+      }
+    } catch (error) {
+      console.error("Error in getParentIndex:", error);
       startingIndex = undefined;
     }
     return startingIndex;
@@ -164,36 +177,6 @@ const CommentCard = ({ index, commentData, leftVal = 0 }) => {
       });
   };
 
-  const LoadMoreRepliesButton = () => {
-    let parentIndex = getParentIndex();
-    let button = (
-      <button
-        onClick={() =>
-          loadReplies({ currentIndex: parentIndex, skip: index - parentIndex })
-        }
-        className="text-dark-grey p-2 px-3 hover:bg-grey/30 rounded-md flex items-center gap-2"
-      >
-        Load More
-      </button>
-    );
-    if (commentsArr[index + 1]) {
-      if (
-        commentsArr[index + 1].childrenLevel < commentsArr[index].childrenLevel
-      ) {
-        if (index - parentIndex < commentsArr[parentIndex].children.length) {
-          return button;
-        }
-      }
-    } else {
-      if (parentIndex) {
-        if (index - parentIndex < commentsArr[parentIndex].children.length) {
-          return button;
-        }
-      }
-    }
-    return "";
-  };
-
   return (
     <div className="w-full" style={{ paddingLeft: `${leftVal * 10}px` }}>
       <div className="my-5 p-6 rounded-md border border-grey">
@@ -251,7 +234,6 @@ const CommentCard = ({ index, commentData, leftVal = 0 }) => {
           </div>
         )}
       </div>
-      <LoadMoreRepliesButton />
     </div>
   );
 };

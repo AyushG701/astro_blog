@@ -3,10 +3,10 @@ import React from "react";
 const Img = ({ url, caption }) => {
   return (
     <div>
-      <img src={url} alt="img" caption />
+      <img src={url} alt="img" className=" border w-full h-full object-cover" />
       {caption.length ? (
         <p className="w-full text-center my-2 md:mb-12 text-base text-dary-grey">
-          {caption}
+          {caption ? caption : "Caption is false"}
         </p>
       ) : (
         ""
