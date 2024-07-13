@@ -13,6 +13,7 @@ import BlogPage from "./pages/BlogPage.jsx";
 import SideNav from "./components/SideNav.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
 import EditProfilePage from "./pages/EditProfilePage.jsx";
+import Notifications from "./pages/Notifications.jsx";
 export const UserContext = createContext({});
 const App = () => {
   const [userAuth, setUserAuth] = useState({});
@@ -32,6 +33,9 @@ const App = () => {
         <Route path="/editor/:blog_id" element={<Editor />} />
         <Route path="/" element={<Navbar />}>
           <Route index element={<HomePage />} />
+          <Route path="dashboard" element={<SideNav />}>
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
           <Route path="settings" element={<SideNav />}>
             <Route path="edit-profile" element={<EditProfilePage />} />
             <Route path="change-password" element={<ChangePassword />} />
