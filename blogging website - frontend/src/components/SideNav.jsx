@@ -7,9 +7,8 @@ const SideNav = () => {
   let [pageState, setPageState] = useState(page.replace("-", " "));
   let [showSideNav, setShowSideNav] = useState(page.replace("-", " "));
 
-  let { setUserAuth, userAuth } = useContext(UserContext);
   let {
-    userAuth: { access_token },
+    userAuth: { access_token, new_notifications_available },
   } = useContext(UserContext);
 
   const changePageState = (e) => {
@@ -84,9 +83,9 @@ const SideNav = () => {
             >
               <div className="relative">
                 <i className="fi fi-rr-bell" />
-                {/* {new_notifications_available && (
+                {new_notifications_available && (
                   <span className="bg-red w-2 h-2 rounded-full absolute z-10 top-0 right-0" />
-                )} */}
+                )}
               </div>
               Notifications
             </NavLink>

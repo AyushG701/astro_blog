@@ -956,6 +956,27 @@ server.post("/get-replies", (req, res) => {
     });
 });
 
+// new notification alter
+server.post("/new-notification", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  Notification.exists({
+    notification_for: user_id,
+    seen: false,
+    user: { $ne: user_id },
+  })
+    .then((result) => {
+      if (result) {
+        return res.status(200).json({ new_notification_avaiable: true });
+      } else {
+        return res.status(200).json({ new_notification_avaiable: false });
+      }
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: req.message });
+    });
+});
 server.listen(PORT, () => {
   console.log("listening on the port -> " + PORT);
 });
