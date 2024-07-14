@@ -1,6 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 import { filterPaginationData } from "../common/filter-pagination-data";
+import NotificationCard from "../components/NotificationCard";
+import AnimationWrapper from "../common/page-animation";
+import NoDataMessage from "../components/NoDataMessage";
+
 const Notifications = () => {
   let {
     userAuth: { access_token },
