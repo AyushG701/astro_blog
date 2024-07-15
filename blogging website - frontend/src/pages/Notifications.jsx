@@ -4,6 +4,7 @@ import { filterPaginationData } from "../common/filter-pagination-data";
 import NotificationCard from "../components/NotificationCard";
 import AnimationWrapper from "../common/page-animation";
 import NoDataMessage from "../components/NoDataMessage";
+import LoadMoreData from "../components/LoadMoreData";
 
 const Notifications = () => {
   let {
@@ -99,7 +100,7 @@ const Notifications = () => {
             <NoDataMessage message={"nothing available"} />
           )}
 
-          <LoadMoreDataBtn
+          <LoadMoreData
             state={notifications}
             fetchDataFun={fetchNotifications}
             additionalParams={{
