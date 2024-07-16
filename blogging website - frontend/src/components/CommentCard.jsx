@@ -11,6 +11,7 @@ console.log("this is difference in two code");
 const CommentCard = ({ index, commentData, leftVal = 0 }) => {
   let {
     comment,
+
     commented_by: {
       personal_info: { fullname, username: profile_username, profile_img },
     },

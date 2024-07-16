@@ -5,6 +5,8 @@ import NotificationCard from "../components/NotificationCard";
 import AnimationWrapper from "../common/page-animation";
 import NoDataMessage from "../components/NoDataMessage";
 import LoadMoreData from "../components/LoadMoreData";
+import Loader from "../components/Loader";
+import axios from "axios";
 
 const Notifications = () => {
   let {
@@ -18,7 +20,7 @@ const Notifications = () => {
   const fetchNotifications = ({ page, deletedDocCount = 0 }) => {
     axios
       .post(
-        import.meta.env.VITE_SERVER_DOMAIN + "/notification",
+        import.meta.env.VITE_SERVER_DOMAIN + "/notifications",
         {
           page,
           filter,
@@ -31,6 +33,7 @@ const Notifications = () => {
         },
       )
       .then(async ({ data: { notifications: data } }) => {
+        console.log(data);
         let formatedData = await filterPaginationData({
           state: notifications,
           data,
@@ -91,7 +94,7 @@ const Notifications = () => {
                   <NotificationCard
                     data={noti}
                     index={i}
-                    notificationState={{ notifications, setNotifications }}
+                    notificationData={{ notifications, setNotifications }}
                   />
                 </AnimationWrapper>
               );

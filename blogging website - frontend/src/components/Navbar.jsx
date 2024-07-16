@@ -3,6 +3,7 @@ import logo from "../imgs/logo.png";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { UserContext } from "../App";
 import UserNavigation from "./UserNavigation";
+import axios from "axios";
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -11,20 +12,23 @@ const Navbar = () => {
   let navigate = useNavigate();
   const {
     userAuth,
-    userAuth: { access_token, profileimg, new_notification_available },
+    userAuth: { access_token, profile_img, new_notification_available },
     setUserAuth,
   } = useContext(UserContext);
 
   useEffect(() => {
     if (access_token) {
       axios
-        .get(import.meta.env.VITE_SERVER_DOMAIN, "/new-notification", {
+        .get(import.meta.env.VITE_SERVER_DOMAIN + "/new-notification", {
           headers: {
             Authorization: `Bearer ${access_token}`,
           },
         })
         .then(({ data }) => {
           setUserAuth({ ...userAuth, ...data });
+        })
+        .catch((err) => {
+          console.log(err);
         });
     }
   }, [access_token]);
@@ -89,7 +93,7 @@ const Navbar = () => {
         </Link>
         {access_token ? (
           <>
-            <Link to="/dashboard/notification">
+            <Link to="/dashboard/notifications">
               <button className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10 ">
                 <i className="fi fi-rr-bell text-2xl block mt-1" />
                 {new_notification_available ? (
@@ -107,11 +111,11 @@ const Navbar = () => {
                 className="w-12 h-12 mt-1"
               >
                 <img
-                  src={profileimg}
+                  src={profile_img}
                   alt="Profile image"
                   className="w-full h-full object-cover rounded-full"
                 />
-                {console.log(profileimg)}
+                {console.log(profile_img)}
               </button>
               {userNavPannel ? <UserNavigation /> : ""}
             </div>

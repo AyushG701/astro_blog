@@ -22,14 +22,15 @@ const NotificationCard = ({ data, index, notificationData }) => {
     },
     _id: notification_id,
   } = data;
-
   let {
+    userAuth,
     userAuth: {
       username: author_username,
       access_token,
       profile_img: author_profile_img,
     },
   } = useContext(UserContext);
+  console.log(userAuth);
 
   let {
     notifications,
@@ -42,6 +43,7 @@ const NotificationCard = ({ data, index, notificationData }) => {
   };
 
   const handleDelete = (comment_id, type, target) => {
+    console.log(target);
     target.setAttribute("disabled", true);
     axios
       .post(

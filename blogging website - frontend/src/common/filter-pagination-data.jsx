@@ -10,7 +10,7 @@ export const filterPaginationData = async ({
   user = undefined,
 }) => {
   let obj;
-
+  console.log(data);
   let headers = {};
 
   if (user) {

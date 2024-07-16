@@ -176,6 +176,7 @@ const CommentField = ({
         },
       )
       .then(({ data }) => {
+        console.log(data);
         setComment("");
         data.commented_by = {
           personal_info: {
@@ -214,15 +215,20 @@ const CommentField = ({
         });
         setTotalParentCommentsLoaded((preVal) => preVal + 1);
       })
-      .catch(({ data }) => {
-        try {
-          if (data.response.status === 403) {
-            return toast.error(data.response.data.error);
+      .catch((error) => {
+        if (error.response) {
+          // Server responded with a status other than 2xx
+          console.log("Response error:", error.response.data);
+          if (error.response.status === 403) {
+            toast.error(error.response.data.error);
           }
-        } catch (err) {
-          console.log(err);
+        } else if (error.request) {
+          // Request was made but no response received
+          console.log("Request error:", error.request);
+        } else {
+          // Something else happened while setting up the request
+          console.log("Error:", error.message);
         }
-        console.log(data);
       });
   };
 
