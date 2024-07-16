@@ -12,7 +12,7 @@ const Navbar = () => {
   let navigate = useNavigate();
   const {
     userAuth,
-    userAuth: { access_token, profile_img, new_notification_available },
+    userAuth: { access_token, profile_img, new_notifications_available },
     setUserAuth,
   } = useContext(UserContext);
 
@@ -51,7 +51,7 @@ const Navbar = () => {
     }
   };
 
-  console.log(new_notification_available);
+  console.log(new_notifications_available);
   return (
     <>
       <nav className="navbar z-50">
@@ -60,7 +60,7 @@ const Navbar = () => {
           <img src={logo} alt="" />
         </Link>
         {/* search bar  (hidden in mobile format)*/}
-        {new_notification_available}
+        {new_notifications_available}
         <div
           className={
             "absolute bg-white w-full left-0 top-full mt-0 border-b border-grey py-4 px-[5vw] md:border-0 md:block md:relative md:inset-0 md:p-0 md:w-auto md:show " +
@@ -96,8 +96,12 @@ const Navbar = () => {
             <Link to="/dashboard/notifications">
               <button className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10 ">
                 <i className="fi fi-rr-bell text-2xl block mt-1" />
-                {new_notification_available ? (
-                  <span className="bg-red w-3 h-3 rounded-full absolute z-10 top-2 right-2"></span>
+                {userAuth ? (
+                  new_notifications_available ? (
+                    <span className="bg-red w-3 h-3 rounded-full absolute z-10 top-2 right-2" />
+                  ) : (
+                    ""
+                  )
                 ) : (
                   ""
                 )}

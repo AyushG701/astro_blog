@@ -832,17 +832,88 @@ server.post("/isliked-by-user", verifyJWT, (req, res) => {
     });
 });
 
+// server.post("/add-comment", verifyJWT, (req, res) => {
+//   let user_id = req.user;
+
+//   let { _id, comment, replying_to, blog_author, notification_id } = req.body;
+//   if (!comment.length) {
+//     return res
+//       .status(403)
+//       .json({ error: "Write something to leave a comment" });
+//   }
+
+//   // creating a comment document
+//   let commentObj = {
+//     blog_id: _id,
+//     blog_author,
+//     comment,
+//     commented_by: user_id,
+//     isReply: Boolean(replying_to),
+//   };
+
+//   if (replying_to) {
+//     commentObj.parent = replying_to;
+//     // commentObj.isReply = true;
+//   }
+
+//   // then save it
+//   new Comment(commentObj).save().then(async (commentFile) => {
+//     let { comment, commentedAt, children } = commentFile;
+//     Blog.findOneAndUpdate(
+//       { _id },
+//       {
+//         $push: { comments: commentFile._id },
+//         $inc: { "activity.total_comments": 1 },
+//         "acticity.total_parent_comments": replying_to ? 0 : 1,
+//       },
+//     ).then((blog) => {
+//       console.log("New Comment created", blog);
+//     });
+
+//     let notificationObj = {
+//       type: replying_to ? "reply" : "comment",
+//       blog: _id,
+//       notification_for: blog_author,
+//       user: user_id,
+//       comment: commentFile._id,
+//     };
+//     if (replying_to) {
+//       notificationObj.replied_on_comment = replying_to;
+//       await Comment.findOneAndUpdate(
+//         { _id: replying_to },
+//         { $push: { children: commentFile._id } },
+//       ).then((reply) => {
+//         notificationObj.notification_for = reply.commented_by;
+//       });
+
+//       if (notification_id) {
+//         Notification.findOneAndUpdate(
+//           { _id: notification_id },
+//           { reply: commentFile._id },
+//         ).then((notification) => console.log("notification updated"));
+//       }
+//     }
+//     new Notification(notificationObj)
+//       .save()
+//       .then((notification) => console.log("new notification created"));
+
+//     return res.status(200).json({
+//       comment,
+//       commentedAt,
+//       _id: commentFile._id,
+//       children,
+//     });
+//   });
+// });
+
 server.post("/add-comment", verifyJWT, (req, res) => {
   let user_id = req.user;
-
   let { _id, comment, replying_to, blog_author, notification_id } = req.body;
   if (!comment.length) {
     return res
       .status(403)
-      .json({ error: "Write something to leave a comment" });
+      .json({ error: "Write something to leave a comment..." });
   }
-
-  // creating a comment document
   let commentObj = {
     blog_id: _id,
     blog_author,
@@ -850,60 +921,62 @@ server.post("/add-comment", verifyJWT, (req, res) => {
     commented_by: user_id,
     isReply: Boolean(replying_to),
   };
-
   if (replying_to) {
     commentObj.parent = replying_to;
-    // commentObj.isReply = true;
   }
-
-  // then save it
-  new Comment(commentObj).save().then(async (commentFile) => {
-    let { comment, commentedAt, children } = commentFile;
-    Blog.findOneAndUpdate(
-      { _id },
-      {
-        $push: { comments: commentFile._id },
-        $inc: { "activity.total_comments": 1 },
-        "acticity.total_parent_comments": replying_to ? 0 : 1,
-      },
-    ).then((blog) => {
-      console.log("New Comment created", blog);
-    });
-
-    let notificationObj = {
-      type: replying_to ? "reply" : "comment",
-      blog: _id,
-      notification_for: blog_author,
-      user: user_id,
-      comment: commentFile._id,
-    };
-    if (replying_to) {
-      notificationObj.replied_on_comment = replying_to;
-      await Comment.findOneAndUpdate(
-        { _id: replying_to },
-        { $push: { children: commentFile._id } },
-      ).then((reply) => {
-        notificationObj.notification_for = reply.commented_by;
+  new Comment(commentObj)
+    .save()
+    .then(async (commentFile) => {
+      let { comment, commentedAt, children } = commentFile;
+      Blog.findOneAndUpdate(
+        { _id },
+        {
+          $push: { comments: commentFile._id },
+          $inc: {
+            "activity.total_comments": 1,
+            "activity.total_parent_comments": replying_to ? 0 : 1,
+          },
+        },
+      ).then((blog) => {
+        console.log("New comment added");
       });
-
-      if (notification_id) {
-        Notification.findOneAndUpdate(
-          { _id: notification_id },
-          { reply: commentFile._id },
-        ).then((notification) => console.log("notification updated"));
+      let notificationObj = {
+        type: replying_to ? "reply" : "comment",
+        blog: _id,
+        notification_for: blog_author,
+        user: user_id,
+        comment: commentFile._id,
+      };
+      if (replying_to) {
+        notificationObj.replied_on_comment = replying_to;
+        await Comment.findOneAndUpdate(
+          { _id: replying_to },
+          { $push: { children: commentFile._id } },
+        ).then((reply) => {
+          notificationObj.notification_for = reply.commented_by;
+        });
+        if (notification_id) {
+          Notification.findOneAndUpdate(
+            { _id: notification_id },
+            { reply: commentFile._id },
+          ).then((notification) => console.log("Notification updated"));
+        }
       }
-    }
-    new Notification(notificationObj)
-      .save()
-      .then((notification) => console.log("new notification created"));
-
-    return res.status(200).json({
-      comment,
-      commentedAt,
-      _id: commentFile._id,
-      children,
+      new Notification(notificationObj)
+        .save()
+        .then((notification) => console.log("New notification created"));
+      return res.status(200).json({
+        comment,
+        commentedAt,
+        _id: commentFile._id,
+        user_id,
+        children,
+      });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
     });
-  });
 });
 
 // get the parent comments not replies
@@ -1018,6 +1091,12 @@ server.post("/notifications", verifyJWT, (req, res) => {
     .sort({ createdAt: -1 })
     .select("createdAt type seen reply")
     .then((notifications) => {
+      Notification.updateMany(findQuery, { seen: true })
+        .skip(skipDocs)
+        .limit(maxLimit)
+        .then(() => {
+          console.log("notification seen");
+        });
       return res.status(200).json({ notifications });
     })
     .catch((err) => {
@@ -1111,6 +1190,46 @@ server.post("/delete-comment", verifyJWT, (req, res) => {
       return res.status(500).json({ error: err.message });
     });
 });
+
+// server.post("/delete-comment", verifyJWT, (req, res) => {
+//   let user_id = req.user;
+
+//   let { _id } = req.body;
+
+//   Comment.findOne({ _id }).then((commet) => {
+//     if (user_id == commet.commented_by || user_id == commet.blog_author) {
+//       Comment.findOneAndDelete(commet._id).then((comment) => {
+//         Notification.findOneAndDelete({ comment: _id }).then((notification) => {
+//           console.log("notification deleted");
+//         });
+
+//         Blog.findOneAndUpdate(
+//           { _id: comment.blog_id },
+//           {
+//             $pull: {
+//               comments: _id,
+//             },
+//             $inc: { "activity.total_comments": -1 },
+//             "activity.total_parent_comments": -1,
+//           },
+//         )
+//           .then((message) => {
+//             console.log("done");
+//           })
+//           .catch((err) => {
+//             console.log(err.message);
+//           });
+//         return res.status(200).json({
+//           status: "done",
+//         });
+//       });
+//     } else {
+//       return res.status(403).json({
+//         error: "you cannnot delete ",
+//       });
+//     }
+//   });
+// });
 
 server.listen(PORT, () => {
   console.log("listening on the port -> " + PORT);

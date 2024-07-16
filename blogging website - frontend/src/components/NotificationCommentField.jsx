@@ -46,8 +46,10 @@ const NotificationCommentField = ({
         },
       )
       .then(({ data }) => {
-        console.log(data);
-        setReplying ? setReplying(false) : "";
+        // console.log(data);
+        if (setReplying) {
+          setReplying(true);
+        }
         results[index].reply = { comment, _id: data._id };
         setNotifications({ ...notifications, results });
       })

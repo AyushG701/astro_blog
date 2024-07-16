@@ -42,8 +42,10 @@ const NotificationCard = ({ data, index, notificationData }) => {
     setIsReplying((preVal) => !preVal);
   };
 
-  const handleDelete = (comment_id, type, target) => {
-    console.log(target);
+  const handleDelete = (comment_id, type, e) => {
+    const target = e.currentTarget;
+
+    // console.log(comment_id, type, e);
     target.setAttribute("disabled", true);
     axios
       .post(
@@ -138,7 +140,7 @@ const NotificationCard = ({ data, index, notificationData }) => {
             </button>
             {type === "comment" && (
               <button
-                onClick={(e) => handleDelete(comment._id, "comment", e.target)}
+                onClick={(e) => handleDelete(comment._id, "comment", e)}
                 className="underline hover:text-black"
               >
                 Delete
