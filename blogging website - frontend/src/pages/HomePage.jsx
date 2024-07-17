@@ -125,7 +125,7 @@ const HomePage = () => {
   };
   return (
     <AnimationWrapper>
-      <section className="h-cover flex justify-center gap-10">
+      <section className="h-cover flex justify-center gap-10 bg-[#f5fffa ]">
         {/* latest blog */}
         <div className="w-full">
           <InpageNavigation
