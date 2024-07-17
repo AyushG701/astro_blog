@@ -1,6 +1,6 @@
 import React from "react";
 
-const LoadMoreData = ({ state, fetchDataFun, additionalParams }) => {
+const LoadMoreData = ({ state, fetchDataFun, additionalParams = {} }) => {
   if (state !== null && state.totalDocs > state.results.length) {
     return (
       <button

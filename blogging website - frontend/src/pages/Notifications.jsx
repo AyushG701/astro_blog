@@ -10,7 +10,7 @@ import axios from "axios";
 
 const Notifications = () => {
   let {
-    userAuth: { access_token },
+    userAuth: { access_token, new_notificaiton_available },
   } = useContext(UserContext);
   const [notifications, setNotifications] = useState(null);
 
@@ -34,6 +34,9 @@ const Notifications = () => {
       )
       .then(async ({ data: { notifications: data } }) => {
         console.log(data);
+        if (new_notificaiton_available) {
+          setUserAuth({ ...userAuth, new_notificaiton_available: false });
+        }
         let formatedData = await filterPaginationData({
           state: notifications,
           data,
@@ -55,6 +58,7 @@ const Notifications = () => {
       fetchNotifications({ page: 1 });
     }
   }, [access_token, filter]);
+
   const handleFilter = (e) => {
     let btn = e.target;
 

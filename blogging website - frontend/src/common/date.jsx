@@ -33,3 +33,8 @@ export const getFullDay = (timeStamp) => {
 
   return `${date.getDay()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 };
+
+export const getDayName = (timestamp) => {
+  const date = new Date(timestamp);
+  return days[date.getDay()];
+};
