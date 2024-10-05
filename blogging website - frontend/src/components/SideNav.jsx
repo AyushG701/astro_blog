@@ -8,7 +8,7 @@ const SideNav = () => {
   let [showSideNav, setShowSideNav] = useState(page.replace("-", " "));
 
   let {
-    userAuth: { access_token, new_notifications_available },
+    userAuth: { access_token, new_notifications_available, isAdmin },
   } = useContext(UserContext);
 
   const changePageState = (e) => {
@@ -89,10 +89,15 @@ const SideNav = () => {
               </div>
               Notifications
             </NavLink>
-            <NavLink to="/editor" className="sidebar-link">
-              <i className="fi fi-rr-file-edit" />
-              Write
-            </NavLink>
+
+            {isAdmin ? (
+              <NavLink to="/editor" className="sidebar-link">
+                <i className="fi fi-rr-file-edit" />
+                Write
+              </NavLink>
+            ) : (
+              ""
+            )}
             <h1 className="text-xl text-dark-grey mt-20 mb-3">Settings</h1>
             <hr className="border-grey -ml-6 mb-8 mr-6" />
             <NavLink

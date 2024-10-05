@@ -16,7 +16,12 @@ const Navbar = () => {
   let navigate = useNavigate();
   const {
     userAuth,
-    userAuth: { access_token, profile_img, new_notifications_available },
+    userAuth: {
+      access_token,
+      profile_img,
+      new_notifications_available,
+      isAdmin,
+    },
     setUserAuth,
   } = useContext(UserContext);
 
@@ -98,11 +103,16 @@ const Navbar = () => {
             <i className="fi fi-rr-search md:hidden text-2xl bg-grey w-12 h-12 rounded-full flex items-center justify-center" />
           </button>
         </div>
-        {/* edit and write or post */}
-        <Link to="/editor" className="hidden md:flex gap-2 link rounded-md">
-          <i className="fi fi-rr-file-edit" />
-          <span>Write</span>
-        </Link>
+
+        {/* edit and write or post but with admin now*/}
+        {isAdmin ? (
+          <Link to="/editor" className="hidden md:flex gap-2 link rounded-md">
+            <i className="fi fi-rr-file-edit" />
+            <span>Write</span>
+          </Link>
+        ) : (
+          ""
+        )}
 
         {/* theme changing feature */}
         <button

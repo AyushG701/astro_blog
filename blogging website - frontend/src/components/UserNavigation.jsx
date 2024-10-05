@@ -5,7 +5,10 @@ import { UserContext } from "../App";
 import { removeFromSession } from "../common/session";
 
 const UserNavigation = () => {
-  const { userAuth, setUserAuth } = useContext(UserContext);
+  const {
+    userAuth: { username, isAdmin },
+    setUserAuth,
+  } = useContext(UserContext);
   const signOutUser = () => {
     removeFromSession("user");
     setUserAuth({ access_token: null });
@@ -17,10 +20,14 @@ const UserNavigation = () => {
     >
       <div className="bg-white absolute right-0 border border-grey w-60  duration-200">
         {/* editor */}
-        <Link to="/editor" className="flex gap-2 link md:hidden pl-8 py-4 ">
-          <i className="fi fi-rr-file-edit"></i>
-          <p>Write</p>
-        </Link>
+        {isAdmin ? (
+          <Link to="/editor" className="flex gap-2 link md:hidden pl-8 py-4 ">
+            <i className="fi fi-rr-file-edit"></i>
+            <p>Write</p>
+          </Link>
+        ) : (
+          ""
+        )}
         {/* profile and setting  */}
         <Link className=" link pl-8 py-4" to={`/user/${userAuth.username}/`}>
           Profile
@@ -39,7 +46,7 @@ const UserNavigation = () => {
           className="text-left p-4 hover:bg-grey w-full pl-8 py-4 "
         >
           <h1 className="font-bold text-xl mb-1 ">sign out</h1>
-          <p className="text-dark-grey">@{userAuth.username}</p>
+          <p className="text-dark-grey">@{username}</p>
         </button>
       </div>
     </AnimationWrapper>

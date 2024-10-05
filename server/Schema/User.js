@@ -66,6 +66,10 @@ const userSchema = mongoose.Schema(
         },
       },
     },
+    admin: {
+      type: Boolean,
+      default: false,
+    },
     social_links: {
       youtube: {
         type: String,
