@@ -18,6 +18,7 @@ const InpageNavigation = ({
   const [inPageNavIndex, setPageNavIndex] = useState(defaultActiveindex);
 
   // State for tracking window width and whether resize event listener is added
+  //helps to solve the ui unstability
   let [width, setWidth] = useState(window.innerWidth);
   let [isResizeEventAdded, setIsResizeEventAdded] = useState(false);
 

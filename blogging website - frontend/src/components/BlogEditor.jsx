@@ -2,7 +2,10 @@ import React, { useContext, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AnimationWrapper from "../common/page-animation";
 import logo from "../imgs/logo.png";
-import blogBanner from "../imgs/blog banner.png";
+import darklogo from "../imgs/logo-dark.png";
+import lightBanner from "../imgs/blog banner light.png";
+import darkBanner from "../imgs/blog banner dark.png";
+
 import { Toaster, toast } from "react-hot-toast";
 // import { uploadFile, getSignatureForUpload } from "../common/cloudinary";
 import { useState } from "react";
@@ -10,12 +13,13 @@ import axios from "axios";
 import { EditorContext } from "../pages/Editor";
 import EditorJS from "@editorjs/editorjs";
 import { tools } from "./Tools";
-import { UserContext } from "../App";
+import { ThemeContext, UserContext } from "../App";
 const BlogEditor = () => {
   //   const [theme, setTheme] = useContext(ThemeContext);
   // const [banner, setBanner] = useState(blogBanner);
   const navigate = useNavigate();
   const { blog_id } = useParams();
+  let { theme } = useContext(ThemeContext);
 
   let {
     blog,
@@ -210,7 +214,7 @@ const BlogEditor = () => {
   const handleErrorImg = (e) => {
     console.log(e);
     let img = e.target;
-    img.src = blogBanner;
+    img.src = theme == "light" ? lightBanner : darkBanner;
   };
   // used for title needed when i dont want user to press enter as title is only one line
 
@@ -234,7 +238,7 @@ const BlogEditor = () => {
       {/* navpar for the editor section with publish or save draft options */}
       <nav className="navbar">
         <Link to="/" className="flex-none w-10">
-          <img className="" src={logo} alt="" />
+          <img className="" src={theme == "light" ? darklogo : logo} alt="" />
         </Link>
 
         <p className="max-md:hidden text-black line-clamp-1 w-full">
@@ -276,7 +280,7 @@ const BlogEditor = () => {
             <textarea
               defaultValue={title}
               placeholder="Blog Title"
-              className=" bg-white text-4xl font-medium w-full h-20 outline-none resize-none mt-10 leading-tight placeholder:opacity-[40%]"
+              className=" bg-white text-4xl font-medium w-full h-20 outline-none resize-none mt-10 leading-tight placeholder:opacity-40 "
               onKeyDown={handleTitleKeyDown}
               onChange={handleTitleChange}
             ></textarea>

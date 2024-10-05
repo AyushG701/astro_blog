@@ -1,13 +1,17 @@
 import React, { useState, useContext, useEffect } from "react";
 import logo from "../imgs/logo.png";
+import darkLogo from "../imgs/logo-dark.png";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { UserContext } from "../App";
+import { ThemeContext, UserContext } from "../App";
 import UserNavigation from "./UserNavigation";
 import axios from "axios";
+import { storeInSession } from "../common/session";
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [userNavPannel, setUserNavPannel] = useState(false);
+
+  let { theme, setTheme } = useContext(ThemeContext);
 
   let navigate = useNavigate();
   const {
@@ -51,13 +55,21 @@ const Navbar = () => {
     }
   };
 
+  // change Theme
+  const changeTheme = () => {
+    let newTheme = theme == "light" ? "dark" : "light";
+    setTheme(newTheme);
+    document.body.setAttribute("data-theme", newTheme);
+    storeInSession("theme", newTheme);
+  };
+
   console.log(new_notifications_available);
   return (
     <>
-      <nav className="navbar z-50 bg-[#c3ffeb] ">
+      <nav className="navbar z-50 bg-white ">
         {/* logo */}
         <Link to="/" className="flex-none w-10">
-          <img src={logo} alt="" />
+          <img src={theme == "light" ? darkLogo : logo} alt="" />
         </Link>
         {/* search bar  (hidden in mobile format)*/}
         {new_notifications_available}
@@ -91,6 +103,20 @@ const Navbar = () => {
           <i className="fi fi-rr-file-edit" />
           <span>Write</span>
         </Link>
+
+        {/* theme changing feature */}
+        <button
+          className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10 "
+          onClick={changeTheme}
+        >
+          <i
+            className={
+              "text-2xl block mt-1  fi fi-rr-" +
+              (theme == "light" ? "moon-stars" : "sun")
+            }
+          />
+        </button>
+
         {access_token ? (
           <>
             <Link to="/dashboard/notifications">
