@@ -3,7 +3,7 @@ import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { UserContext } from "../App";
 
 const SideNav = () => {
-  let page = location.pathname.split("/")[2];
+  let page = location.pathname.split("/")[2] || "blogs";
   let [pageState, setPageState] = useState(page.replace("-", " "));
   let [showSideNav, setShowSideNav] = useState(page.replace("-", " "));
 

@@ -195,8 +195,9 @@ const BlogEditor = () => {
             toast.success("Saved 👍");
 
             // Navigate to the user's blog dashboard after a short delay
+            resetEditor();
             setTimeout(() => {
-              navigate("/");
+              navigate(`/dashboard/blogs?tab=draft`);
             }, 500);
           })
           .catch(({ response }) => {
@@ -232,7 +233,9 @@ const BlogEditor = () => {
     input.style.height = input.scrollHeight + "px";
     setBlog({ ...blog, title: input.value });
   };
-
+  const resetEditor = () => {
+    setTextEditor({ isReady: false });
+  };
   return (
     <>
       {/* navpar for the editor section with publish or save draft options */}
