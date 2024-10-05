@@ -15,6 +15,7 @@ import ChangePassword from "./pages/ChangePassword.jsx";
 import EditProfilePage from "./pages/EditProfilePage.jsx";
 import Notifications from "./pages/Notifications.jsx";
 import ManageBlogs from "./pages/ManageBlogs.jsx";
+import GoogleTagManager from "./components/GoogleTagManager.jsx";
 export const UserContext = createContext({});
 
 export const ThemeContext = createContext({});
@@ -49,6 +50,7 @@ const App = () => {
   }, []);
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
+      <GoogleTagManager />
       <UserContext.Provider value={{ userAuth, setUserAuth }}>
         <Routes>
           <Route path="/editor" element={<Editor />} />

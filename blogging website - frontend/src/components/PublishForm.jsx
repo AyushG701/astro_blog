@@ -114,8 +114,9 @@ const PublishForm = () => {
         toast.success("Published 👍");
 
         // Navigate to the user's blog dashboard after a short delay
+        resetEditor();
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate(`/dashboard/blogs`);
         }, 500);
       })
       .catch(({ response }) => {
@@ -147,6 +148,9 @@ const PublishForm = () => {
     }
   };
 
+  const resetEditor = () => {
+    setTextEditor({ isReady: false });
+  };
   return (
     <AnimationWrapper>
       <Toaster />
